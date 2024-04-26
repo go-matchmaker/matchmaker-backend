@@ -28,7 +28,7 @@ func (ps *postgres) Migration() {
 	connUrl := ps.GetURL()
 	for attempts > 0 {
 		m, err = migrate.New(fmt.Sprintf("file://%s", _migrationFilePath), connUrl)
-		if err == nil {
+		if err == nil || errors.Is(err, migrate.ErrNoChange) {
 			break
 		}
 
