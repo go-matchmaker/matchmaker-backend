@@ -5,8 +5,8 @@ import (
 )
 
 type ServerMaker interface {
-	Start(ctx context.Context)
-	Close()
+	Start(ctx context.Context) error
+	Close(ctx context.Context) error
 	Config()
 	HttpMiddleware() error
 	AuthMiddleware() error

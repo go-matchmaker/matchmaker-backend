@@ -57,11 +57,6 @@ func (ps *postgres) Start(ctx context.Context) error {
 		return ps.ping(ctx)
 	})
 
-	if err := ps.eg.Wait(); err != nil {
-		zap.S().Fatal("PostgreSQL connection failed: ", err)
-		return err
-	}
-
 	zap.S().Info("Connected to PostgreSQL 🎉")
 	return nil
 }
@@ -90,12 +85,15 @@ func (ps *postgres) connect(ctx context.Context, url string) error {
 	return lastErr
 }
 
-func (ps *postgres) Close() error {
-	if ps.pool != nil {
-		ps.pool.Close()
-	}
-
-	zap.S().Info("Disconnected from PostgreSQL")
+func (ps *postgres) Close(ctx context.Context) error {
+	ps.eg.Go(func() error {
+		select {
+		case <-ctx.Done():
+			zap.S().Info("Context is done. Shutting down server...")
+			ps.pool.Close()
+			return nil
+		}
+	})
 	return nil
 }
 

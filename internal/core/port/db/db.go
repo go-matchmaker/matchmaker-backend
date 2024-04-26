@@ -7,7 +7,7 @@ import (
 
 type EngineMaker interface {
 	Start(ctx context.Context) error
-	Close() error
+	Close(ctx context.Context) error
 	GetDB() *pgxpool.Pool
 	GetURL() string
 	Migration()

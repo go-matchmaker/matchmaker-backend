@@ -8,9 +8,9 @@ import (
 	"github.com/bulutcan99/company-matcher/internal/adapter/auth/paseto"
 	"github.com/bulutcan99/company-matcher/internal/adapter/config"
 	adapter_service "github.com/bulutcan99/company-matcher/internal/adapter/service"
+	"github.com/bulutcan99/company-matcher/internal/adapter/storage/dragonfly"
 	psql "github.com/bulutcan99/company-matcher/internal/adapter/storage/postgres"
 	"github.com/bulutcan99/company-matcher/internal/adapter/storage/postgres/repository"
-	"github.com/bulutcan99/company-matcher/internal/adapter/storage/redis"
 	adapter_http "github.com/bulutcan99/company-matcher/internal/adapter/transport/http"
 	"github.com/bulutcan99/company-matcher/internal/core/port/cache"
 	"github.com/bulutcan99/company-matcher/internal/core/port/db"
@@ -33,7 +33,7 @@ func InitApp(
 	panic(wire.Build(
 		New,
 		dbEngineFunc,
-		redisEngineFunc,
+		dragonflyEngineFunc,
 		repository.UserRepositorySet,
 		adapter_service.UserServiceSet,
 		paseto.PasetoSet,
@@ -53,20 +53,20 @@ func dbEngineFunc(
 
 	psqlDb.Migration()
 
-	return psqlDb, func() { psqlDb.Close() }, nil
+	return psqlDb, func() { psqlDb.Close(ctx) }, nil
 }
 
-func redisEngineFunc(
+func dragonflyEngineFunc(
 	ctx context.Context,
 	eg *errgroup.Group,
 	Cfg *config.Container) (cache.EngineMaker, func(), error) {
-	redisEngine := redis.NewRedisCache(eg, Cfg)
+	redisEngine := dragonfly.NewDragonflyCache(eg, Cfg)
 	err := redisEngine.Start(ctx)
 	if err != nil {
 		zap.S().Fatal("failed to start redis:", err)
 	}
 
-	return redisEngine, func() { redisEngine.Close() }, nil
+	return redisEngine, func() { redisEngine.Close(ctx) }, nil
 }
 
 func httpServerFunc(
@@ -85,5 +85,5 @@ func httpServerFunc(
 	}
 
 	httpServer.SetupRouter()
-	return httpServer, func() { httpServer.Close() }, nil
+	return httpServer, func() { httpServer.Close(ctx) }, nil
 }

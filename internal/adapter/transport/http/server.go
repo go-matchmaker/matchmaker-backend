@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/bulutcan99/company-matcher/internal/adapter/config"
 	"github.com/bulutcan99/company-matcher/internal/core/port/http"
@@ -11,6 +12,8 @@ import (
 	"github.com/google/wire"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+
+	std_http "net/http"
 )
 
 var (
@@ -44,37 +47,34 @@ func NewHttpServer(
 	}
 }
 
-func (s *server) Start(ctx context.Context) {
+func (s *server) Start(ctx context.Context) error {
 	fiberConnURL := fmt.Sprintf("%s:%d", s.cfg.HTTP.Host, s.cfg.HTTP.Port)
 	s.eg.Go(func() error {
 		if err := s.app.Listen(fiberConnURL); err != nil {
-			zap.S().Fatal("server listen error: %w", err)
+			if errors.Is(err, std_http.ErrServerClosed) {
+				return nil
+			}
+			zap.S().Error("server listen error: %w", err)
+			return err
 		}
 		return nil
 	})
+	return nil
+}
 
+func (s *server) Close(ctx context.Context) error {
 	s.eg.Go(func() error {
 		select {
 		case <-ctx.Done():
 			zap.S().Info("Context is done. Shutting down server...")
 			if err := s.app.Shutdown(); err != nil {
-				zap.S().Fatal("server shutdown error: %w", err)
+				zap.S().Error("server shutdown error: %w", err)
+				return err
 			}
 			return nil
 		}
 	})
-
-	if err := s.eg.Wait(); err != nil {
-		zap.S().Fatal("errorgroup error: %w", err)
-	}
-}
-
-func (s *server) Close() {
-	zap.S().Info("Shutting down server...")
-	if err := s.app.Shutdown(); err != nil {
-		zap.S().Fatal("server shutdown error:", err)
-	}
-	return
+	return nil
 }
 
 func (s *server) SetupRouter() {

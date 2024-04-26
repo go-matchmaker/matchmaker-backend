@@ -11,13 +11,13 @@ const (
 
 type (
 	Container struct {
-		App      `yaml:"app"`
-		Log      `yaml:"logger"`
-		HTTP     *HTTP     `yaml:"http"`
-		Token    *Token    `yaml:"token"`
-		Redis    *Redis    `yaml:"redis"`
-		PSQL     *PSQL     `yaml:"psql"`
-		Settings *Settings `yaml:"settings"`
+		App       `yaml:"app"`
+		Log       `yaml:"logger"`
+		HTTP      *HTTP      `yaml:"http"`
+		Token     *Token     `yaml:"token"`
+		Dragonfly *Dragonfly `yaml:"dragonfly"`
+		PSQL      *PSQL      `yaml:"psql"`
+		Settings  *Settings  `yaml:"settings"`
 	}
 
 	App struct {
@@ -33,7 +33,7 @@ type (
 		TTL          string `env-required:"true" yaml:"ttl" env:"TOKEN_TTL"`
 	}
 
-	Redis struct {
+	Dragonfly struct {
 		Host     string `env-required:"true" yaml:"host" env:"REDIS_HOST"`
 		Port     int    `env-required:"true" yaml:"port" env:"REDIS_PORT"`
 		Password string `env-required:"true" yaml:"password" env:"REDIS_PASSWORD"`
