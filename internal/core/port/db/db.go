@@ -1,0 +1,14 @@
+package db
+
+import (
+	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type EngineMaker interface {
+	Start(ctx context.Context) error
+	Close() error
+	GetDB() *pgxpool.Pool
+	GetURL() string
+	Migration()
+}

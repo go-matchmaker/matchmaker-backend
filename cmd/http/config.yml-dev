@@ -1,0 +1,35 @@
+app:
+  name: 'matchmaker-service'
+  version: '1.0.0'
+
+log:
+  level: 2
+
+token:
+  symmetric_key: 'secret'
+  ttl: 3600
+
+redis:
+  host: 'localhost'
+  port: 6379
+  password: 'pass'
+  db_number: 0
+
+http:
+  host: '0.0.0.0'
+  port: 5002
+
+psql:
+  conn: 'postgres'
+  host: 'localhost'
+  port: 5432
+  user: 'user'
+  password: 'pass'
+  name: 'matchmaker_db'
+
+rabbitmq:
+  host: 'localhost'
+  port: 5672
+
+settings:
+  server_read_timeout: 5
