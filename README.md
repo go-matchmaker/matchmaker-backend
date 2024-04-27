@@ -31,3 +31,14 @@ The Matchmaker App is ideal for businesses, organizations, and professionals loo
 Provides a streamlined platform for companies to find potential partners or collaborators.
 Offers a structured approach to networking, saving time and effort in the search for suitable matches.
 Facilitates meaningful interactions, leading to productive discussions and potential business opportunities.
+
+
+- TODO:
+Authentication
+Mail auth
+Load Balancing
+Event Streaming for async notifications
+Concurrency control, rate limit, adaptive circuit breaker,
+Some tools like in Pocketbase (like OA2)
+Chained timeout control, adaptive load shedding 
+Powerful middleware design, support: Tracing (OpenTelemetry), Metrics (Prometheus is default), Recovery and more.
