@@ -4,26 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bulutcan99/company-matcher/internal/adapter/config"
-	"github.com/bulutcan99/company-matcher/internal/core/port/http"
-	"github.com/bulutcan99/company-matcher/internal/core/port/service"
-	"github.com/bulutcan99/company-matcher/internal/core/port/token"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/http"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/service"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/token"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/wire"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
-
 	std_http "net/http"
 )
 
 var (
 	_         http.ServerMaker = (*server)(nil)
-	ServerSet                  = wire.NewSet(NewHttpServer)
+	ServerSet                  = wire.NewSet(NewHTTPServer)
 )
 
 type (
 	server struct {
-		eg           *errgroup.Group
+		ctx          context.Context
 		cfg          *config.Container
 		app          *fiber.App
 		cfgFiber     *fiber.Config
@@ -32,15 +30,15 @@ type (
 	}
 )
 
-func NewHttpServer(
-	eg *errgroup.Group,
+func NewHTTPServer(
+	ctx context.Context,
 	cfg *config.Container,
 	userService service.UserMaker,
 	tokenService token.TokenMaker,
 ) http.ServerMaker {
 	return &server{
 		app:          fiber.New(),
-		eg:           eg,
+		ctx:          ctx,
 		cfg:          cfg,
 		userService:  userService,
 		tokenService: tokenService,
@@ -49,31 +47,24 @@ func NewHttpServer(
 
 func (s *server) Start(ctx context.Context) error {
 	fiberConnURL := fmt.Sprintf("%s:%d", s.cfg.HTTP.Host, s.cfg.HTTP.Port)
-	s.eg.Go(func() error {
+	go func() {
+		zap.S().Info("Starting HTTP server on ", fiberConnURL)
 		if err := s.app.Listen(fiberConnURL); err != nil {
 			if errors.Is(err, std_http.ErrServerClosed) {
-				return nil
+				return
 			}
-			zap.S().Error("server listen error: %w", err)
-			return err
+			zap.S().Fatal("server listen error: %w", err)
 		}
-		return nil
-	})
+	}()
 	return nil
 }
 
 func (s *server) Close(ctx context.Context) error {
-	s.eg.Go(func() error {
-		select {
-		case <-ctx.Done():
-			zap.S().Info("Context is done. Shutting down server...")
-			if err := s.app.Shutdown(); err != nil {
-				zap.S().Error("server shutdown error: %w", err)
-				return err
-			}
-			return nil
-		}
-	})
+	zap.S().Info("HTTP-Server Context is done. Shutting down server...")
+	if err := s.app.ShutdownWithContext(ctx); err != nil {
+		zap.S().Error("server shutdown error: %w", err)
+		return err
+	}
 	return nil
 }
 

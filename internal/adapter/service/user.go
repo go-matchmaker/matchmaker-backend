@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"github.com/bulutcan99/company-matcher/internal/core/domain/entity"
-	"github.com/bulutcan99/company-matcher/internal/core/port/cache"
-	"github.com/bulutcan99/company-matcher/internal/core/port/repository"
-	"github.com/bulutcan99/company-matcher/internal/core/port/service"
-	"github.com/bulutcan99/company-matcher/internal/core/port/token"
-	"github.com/bulutcan99/company-matcher/internal/core/util"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/cache"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/repository"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/service"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/token"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/google/wire"
@@ -34,7 +34,7 @@ func NewAuthService(userRepo repository.UserMaker, cache cache.EngineMaker, toke
 
 func (as *UserService) Register(ctx context.Context, userModel *entity.User) (*uuid.UUID, error) {
 
-	id, err = as.userRepo.Insert(ctx, userModel)
+	id, err := as.userRepo.Insert(ctx, userModel)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (as *UserService) Register(ctx context.Context, userModel *entity.User) (*u
 
 	}
 
-	return user, nil
+	return id, nil
 }
 
 //

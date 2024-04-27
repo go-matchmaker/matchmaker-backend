@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *server) HttpMiddleware() error {
+func (s *server) HTTPMiddleware() error {
 	err := s.app.Use(
 		cors.New(*s.getCorsConfig()),
 		logger.New(),

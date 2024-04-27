@@ -2,9 +2,9 @@ package paseto
 
 import (
 	"errors"
-	"github.com/bulutcan99/company-matcher/internal/adapter/config"
-	"github.com/bulutcan99/company-matcher/internal/core/domain/valueobject"
-	"github.com/bulutcan99/company-matcher/internal/core/port/token"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/valueobject"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/token"
 	"github.com/google/wire"
 	"time"
 

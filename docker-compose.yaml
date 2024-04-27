@@ -5,30 +5,27 @@ services:
     image: postgres:14-alpine
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=P@ss
+      - w0rd
     healthcheck:
       test: ["CMD", "pg_isready"]
     ports:
       - "5432:5432"
     networks:
-      - matchmaker-network
+      - matcher-network
 
-  rabbitmq:
-    image: rabbitmq:3.11-management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 30s
-      timeout: 30s
-      retries: 3
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    ulimits:
+      memlock: -1
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "6379:6379"
+    # For better performance, consider `host` mode instead `port` to avoid docker NAT.
+    # `host` mode is NOT currently supported in Swarm Mode.
+    # https://docs.docker.com/compose/compose-file/compose-file-v3/#network_mode
     networks:
-      - matchmaker-network
+      - matcher-network
 
   matcher:
     build:

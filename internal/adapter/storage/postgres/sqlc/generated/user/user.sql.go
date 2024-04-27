@@ -89,7 +89,7 @@ type InsertUserParams struct {
 	Email          string    `json:"email"`
 	PhoneNumber    string    `json:"phone_number"`
 	CompanyName    string    `json:"company_name"`
-	CompanyType    int32     `json:"company_type"`
+	CompanyType    string    `json:"company_type"`
 	CompanyWebsite string    `json:"company_website"`
 	PasswordHash   string    `json:"password_hash"`
 	CreatedAt      time.Time `json:"created_at"`
@@ -154,7 +154,7 @@ type UpdateUserParams struct {
 	Email          pgtype.Text        `json:"email"`
 	PhoneNumber    pgtype.Text        `json:"phone_number"`
 	CompanyName    pgtype.Text        `json:"company_name"`
-	CompanyType    pgtype.Int4        `json:"company_type"`
+	CompanyType    pgtype.Text        `json:"company_type"`
 	CompanyWebsite pgtype.Text        `json:"company_website"`
 	PasswordHash   pgtype.Text        `json:"password_hash"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`

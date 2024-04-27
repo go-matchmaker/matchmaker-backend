@@ -11,25 +11,25 @@ services:
       test: ["CMD", "pg_isready"]
     ports:
       - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     networks:
-      - matcher-network
+      - common_network
 
-  rabbitmq:
-    image: rabbitmq:3.11-management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 30s
-      timeout: 30s
-      retries: 3
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    ulimits:
+      memlock: -1
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "6379:6379"
+    volumes:
+      - dragonflydata:/data
     networks:
-      - matcher-network
+      - common_network
 
 networks:
-  matcher-network:
-    driver: bridge
+  common_network:
+
+volumes:
+  postgres-data:
+  dragonflydata:

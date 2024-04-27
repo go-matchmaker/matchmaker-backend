@@ -2,11 +2,12 @@ package repository
 
 import (
 	"context"
-	"github.com/bulutcan99/company-matcher/internal/adapter/converter"
-	"github.com/bulutcan99/company-matcher/internal/adapter/storage/postgres/sqlc/generated/user"
-	"github.com/bulutcan99/company-matcher/internal/core/domain/entity"
-	"github.com/bulutcan99/company-matcher/internal/core/port/db"
-	"github.com/bulutcan99/company-matcher/internal/core/port/repository"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/converter"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres/sqlc/generated/user"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/repository"
+	"github.com/google/uuid"
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -28,9 +29,9 @@ func NewUserRepository(db db.EngineMaker) repository.UserMaker {
 	}
 }
 
-func (r *UserRepository) Insert(ctx context.Context, userModel *entity.User) error {
+func (r *UserRepository) Insert(ctx context.Context, userModel *entity.User) (*uuid.UUID, error) {
 	userConv := converter.UserModelToArg(userModel)
 	userArg := user.InsertUserParams(*userConv)
-	_, err := r.querier.InsertUser(ctx, r.db, &userArg)
-	return err
+	userEntity, err := r.querier.InsertUser(ctx, r.db, &userArg)
+	return &userEntity.ID, err
 }

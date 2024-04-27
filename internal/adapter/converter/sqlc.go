@@ -1,20 +1,20 @@
 package converter
 
 import (
-	"github.com/bulutcan99/company-matcher/internal/adapter/storage/postgres/sqlc/generated/user"
-	"github.com/bulutcan99/company-matcher/internal/core/domain"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres/sqlc/generated/user"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
 )
 
-func ArgToUserModel(user *user.Users) *domain.User {
-	return &domain.User{
+func ArgToUserModel(user *user.Users) *entity.User {
+	return &entity.User{
 		ID:             user.ID,
-		UserRole:       domain.UserRole(user.UserRole),
+		UserRole:       entity.UserRole(user.UserRole),
 		Name:           user.Name,
 		Surname:        user.Surname,
 		Email:          user.Email,
 		PhoneNumber:    user.PhoneNumber,
 		CompanyName:    user.CompanyName,
-		CompanyType:    int(user.CompanyType),
+		CompanyType:    user.CompanyType,
 		CompanyWebSite: user.CompanyWebsite,
 		PasswordHash:   user.PasswordHash,
 		CreatedAt:      user.CreatedAt,
@@ -22,7 +22,7 @@ func ArgToUserModel(user *user.Users) *domain.User {
 	}
 }
 
-func UserModelToArg(userModel *domain.User) *user.Users {
+func UserModelToArg(userModel *entity.User) *user.Users {
 	return &user.Users{
 		ID:             userModel.ID,
 		UserRole:       user.UserRole(userModel.UserRole),
@@ -31,7 +31,7 @@ func UserModelToArg(userModel *domain.User) *user.Users {
 		Email:          userModel.Email,
 		PhoneNumber:    userModel.PhoneNumber,
 		CompanyName:    userModel.CompanyName,
-		CompanyType:    int32(userModel.CompanyType),
+		CompanyType:    userModel.CompanyType,
 		CompanyWebsite: userModel.CompanyWebSite,
 		PasswordHash:   userModel.PasswordHash,
 		CreatedAt:      userModel.CreatedAt,

@@ -2,14 +2,12 @@ package dragonfly
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/bulutcan99/company-matcher/internal/adapter/config"
-	"github.com/bulutcan99/company-matcher/internal/core/port/cache"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/cache"
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"time"
 )
 
@@ -19,14 +17,12 @@ var (
 )
 
 type dragonfly struct {
-	eg     *errgroup.Group
 	cfg    *config.Container
 	client *redis.Client
 }
 
-func NewDragonflyCache(eg *errgroup.Group, cfg *config.Container) cache.EngineMaker {
+func NewDragonflyCache(cfg *config.Container) cache.EngineMaker {
 	d := &dragonfly{
-		eg:  eg,
 		cfg: cfg,
 	}
 
@@ -35,46 +31,31 @@ func NewDragonflyCache(eg *errgroup.Group, cfg *config.Container) cache.EngineMa
 
 func (d *dragonfly) Start(ctx context.Context) error {
 	address := fmt.Sprintf("%s:%d", d.cfg.Dragonfly.Host, d.cfg.Dragonfly.Port)
-	dbNumber := d.cfg.Dragonfly.DbNumber
-	password := d.cfg.Dragonfly.Password
+	dbNumber := d.cfg.Dragonfly.DBNumber
 
-	var client *redis.Client
 	var pingErr error
-	d.eg.Go(func() error {
-		client = redis.NewClient(&redis.Options{
-			Addr:     address,
-			DB:       dbNumber,
-			Password: password,
+	go func() {
+		d.client = redis.NewClient(&redis.Options{
+			Addr: address,
+			DB:   dbNumber,
 		})
-		return nil
-	})
-
-	d.eg.Go(func() error {
-		if client != nil {
-			_, pingErr = d.client.Ping(ctx).Result()
-			if pingErr != nil {
-				return pingErr
-			}
-			return nil
+		zap.S().Info("Connecting to Dragonfly...")
+		_, pingErr = d.client.Ping(ctx).Result()
+		zap.S().Info("DragonFly Pong! 🐉")
+		if pingErr != nil {
+			zap.S().Fatal("Dragonfly ping failed", pingErr)
 		}
-		return errors.New("dragonfly client is nil")
-	})
+	}()
 
 	return nil
 }
 
 func (d *dragonfly) Close(ctx context.Context) error {
-	d.eg.Go(func() error {
-		select {
-		case <-ctx.Done():
-			zap.S().Info("Context is done. Shutting down server...")
-			if err := d.client.Close(); err != nil {
-				zap.S().Error("server shutdown error: %w", err)
-				return err
-			}
-			return nil
-		}
-	})
+	zap.S().Info("Dragonfly Context is done. Shutting down server...")
+	if err := d.client.Close(); err != nil {
+		zap.S().Error("server shutdown error: %w", err)
+		return err
+	}
 	return nil
 }
 

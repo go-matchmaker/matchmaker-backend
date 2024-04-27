@@ -1,10 +1,10 @@
 package token
 
 import (
-	"github.com/bulutcan99/company-matcher/internal/core/domain"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/valueobject"
 )
 
 type TokenMaker interface {
-	CreateToken(email string, role string) (string, *domain.TokenPayload, error)
-	VerifyToken(token string) (*domain.TokenPayload, error)
+	CreateToken(email string, role string) (string, *valueobject.TokenPayload, error)
+	VerifyToken(token string) (*valueobject.TokenPayload, error)
 }

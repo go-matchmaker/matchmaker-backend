@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/bulutcan99/company-matcher/internal/adapter/app"
-	"github.com/bulutcan99/company-matcher/internal/adapter/config"
-	"github.com/bulutcan99/company-matcher/internal/adapter/logger"
-	"github.com/bulutcan99/company-matcher/internal/core/util"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/app"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/logger"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/util"
 	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"os/signal"
 	"sync"
 )
@@ -22,7 +21,6 @@ func main() {
 	defer cancel()
 	wg := new(sync.WaitGroup)
 	rw := new(sync.RWMutex)
-	eg, ctx := errgroup.WithContext(ctx)
 	cfg, err := config.NewConfig()
 	if err != nil {
 		panic("failed get config: " + err.Error())
@@ -31,12 +29,11 @@ func main() {
 	Logger := logger.InitLogger(cfg.Log.Level)
 	defer Logger.Sync()
 
-	cleanup := prepareApp(ctx, wg, rw, eg, cfg)
+	cleanup := prepareApp(ctx, wg, rw, cfg)
 	zap.S().Info("⚡ Service name:", cfg.Name)
 	<-ctx.Done()
-	zap.S().Info("Context done signal received, shutting down")
+	zap.S().Info("Context signal received, shutting down")
 	wg.Wait()
-	err = eg.Wait()
 	if err != nil {
 		panic("error from wait group: " + err.Error())
 	}
@@ -47,9 +44,9 @@ func main() {
 
 }
 
-func prepareApp(ctx context.Context, wg *sync.WaitGroup, rw *sync.RWMutex, eg *errgroup.Group, cfg *config.Container) func() {
+func prepareApp(ctx context.Context, wg *sync.WaitGroup, rw *sync.RWMutex, cfg *config.Container) func() {
 	var errMsg error
-	a, cleanUp, errMsg := app.InitApp(ctx, wg, rw, eg, cfg)
+	a, cleanUp, errMsg := app.InitApp(ctx, wg, rw, cfg)
 	if errMsg != nil {
 		zap.S().Error("failed init app", errMsg)
 		<-ctx.Done()

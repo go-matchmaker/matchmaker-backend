@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"github.com/bulutcan99/company-matcher/internal/core/domain/entity"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
 	"github.com/google/uuid"
 )
 

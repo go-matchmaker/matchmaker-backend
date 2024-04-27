@@ -1,5 +1,4 @@
-HTTP_MAIN_PACKAGE_PATH := cmd/
-HTTP_BINARY_NAME := http
+HTTP_MAIN_PACKAGE_PATH := cmd/http
 
 PROTO_DIR := proto
 PB_DIR := proto/pb
@@ -7,6 +6,43 @@ PROTOC := protoc
 GRPC_PLUGIN := protoc-gen-go
 GRPC_GATEWAY_PLUGIN := protoc-gen-grpc-gateway
 PROTOC_OPTS := -I$(PROTO_DIR) --go_out=$(PB_DIR) --go_opt=paths=source_relative --go-grpc_out=$(PB_DIR) --go-grpc_opt=paths=source_relative
+
+MIGRATION_FOLDER := internal/adapter/storage/postgres/migration
+DB_URL := postgresql://postgres:P@ssw0rd@localhost:5432/postgres?sslmode=disable
+# ==================================================================================== #
+# DB
+# ==================================================================================== #
+create-db:
+	docker exec -it postgres createdb --username=root --owner=root simple_bank
+
+drop-db:
+	docker exec -it postgres dropdb postgres
+
+migrat-eup:
+	migrate -path "$(MIGRATION_FOLDER)" -database "$(DB_URL)" -verbose up
+
+migrate-up1:
+	migrate -path "$(MIGRATION_FOLDER)" -database "$(DB_URL)" -verbose up 1
+
+migrate-down:
+	migrate -path "$(MIGRATION_FOLDER)" -database "$(DB_URL)" -verbose down
+
+migrate-down1:
+	migrate -path "$(MIGRATION_FOLDER)" -database "$(DB_URL)" -verbose down 1
+
+new-migration:
+	migrate create -ext sql -dir "$(MIGRATION_FOLDER)" -seq $(name)
+
+migrate-force:
+	migrate -path $(MIGRATION_FOLDER) -database "$(DB_URL)" force 1
+
+db-docs:
+	dbdocs build doc/db.dbml
+
+db-schema:
+	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
+
+
 
 # ==================================================================================== #
 # HELPERS
@@ -128,7 +164,7 @@ run: run-http
 .PHONY: run-http
 run-http:
 	cd $(HTTP_MAIN_PACKAGE_PATH) && go mod tidy && go mod download && \
-    CGO_ENABLED=0 go run rc-boxdata_storage/$(HTTP_MAIN_PACKAGE_PATH)
+    CGO_ENABLED=0 go run github.com/go-matchmaker/matchmaker-server/$(HTTP_MAIN_PACKAGE_PATH)
 
 ## docker-compose: run docker-compose
 docker-compose: docker-compose-stop docker-compose-start
@@ -138,17 +174,13 @@ docker-compose: docker-compose-stop docker-compose-start
 docker-compose-start:
 	docker-compose up --build
 
-.PHONY: docker-compose-start-dependency
-docker-compose-start-dependency:
-	docker-compose up --build mongodb rabbitmq
-
-.PHONY: docker-compose-start-unparsed
-docker-compose-start-unparsed:
-	docker-compose up --build unparsed
+.PHONY: docker-dependency-start
+docker-dependency-start:
+	docker-compose -f docker-compose-core.yaml up -d
 
 .PHONY: docker-compose-stop
 docker-compose-stop:
-	docker-compose down --remove-orphans -v
+	ddocker-compose down
 
 # ==================================================================================== #
 # WIRE

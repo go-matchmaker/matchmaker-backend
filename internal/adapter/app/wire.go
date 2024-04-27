@@ -5,21 +5,20 @@ package app
 
 import (
 	"context"
-	"github.com/bulutcan99/company-matcher/internal/adapter/auth/paseto"
-	"github.com/bulutcan99/company-matcher/internal/adapter/config"
-	adapter_service "github.com/bulutcan99/company-matcher/internal/adapter/service"
-	"github.com/bulutcan99/company-matcher/internal/adapter/storage/dragonfly"
-	psql "github.com/bulutcan99/company-matcher/internal/adapter/storage/postgres"
-	"github.com/bulutcan99/company-matcher/internal/adapter/storage/postgres/repository"
-	adapter_http "github.com/bulutcan99/company-matcher/internal/adapter/transport/http"
-	"github.com/bulutcan99/company-matcher/internal/core/port/cache"
-	"github.com/bulutcan99/company-matcher/internal/core/port/db"
-	"github.com/bulutcan99/company-matcher/internal/core/port/http"
-	"github.com/bulutcan99/company-matcher/internal/core/port/service"
-	"github.com/bulutcan99/company-matcher/internal/core/port/token"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/auth/paseto"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
+	adapter_service "github.com/go-matchmaker/matchmaker-server/internal/adapter/service"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/dragonfly"
+	psql "github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres/repository"
+	adapter_http "github.com/go-matchmaker/matchmaker-server/internal/adapter/transport/http"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/cache"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/http"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/service"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/token"
 	"github.com/google/wire"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"sync"
 )
 
@@ -27,7 +26,6 @@ func InitApp(
 	ctx context.Context,
 	wg *sync.WaitGroup,
 	rw *sync.RWMutex,
-	eg *errgroup.Group,
 	Cfg *config.Container,
 ) (*App, func(), error) {
 	panic(wire.Build(
@@ -43,27 +41,27 @@ func InitApp(
 
 func dbEngineFunc(
 	ctx context.Context,
-	eg *errgroup.Group,
 	Cfg *config.Container) (db.EngineMaker, func(), error) {
-	psqlDb := psql.NewDB(eg, Cfg)
+	psqlDb := psql.NewDB(Cfg)
 	err := psqlDb.Start(ctx)
 	if err != nil {
 		zap.S().Fatal("failed to start db:", err)
 	}
-
-	psqlDb.Migration()
+	err = psqlDb.Migration()
+	if err != nil {
+		zap.S().Fatal("failed to migrate db:", err)
+	}
 
 	return psqlDb, func() { psqlDb.Close(ctx) }, nil
 }
 
 func dragonflyEngineFunc(
 	ctx context.Context,
-	eg *errgroup.Group,
 	Cfg *config.Container) (cache.EngineMaker, func(), error) {
-	redisEngine := dragonfly.NewDragonflyCache(eg, Cfg)
+	redisEngine := dragonfly.NewDragonflyCache(Cfg)
 	err := redisEngine.Start(ctx)
 	if err != nil {
-		zap.S().Fatal("failed to start redis:", err)
+		zap.S().Fatal("failed to start dragonfly:", err)
 	}
 
 	return redisEngine, func() { redisEngine.Close(ctx) }, nil
@@ -71,18 +69,20 @@ func dragonflyEngineFunc(
 
 func httpServerFunc(
 	ctx context.Context,
-	eg *errgroup.Group,
 	Cfg *config.Container,
 	UserService service.UserMaker,
 	tokenMaker token.TokenMaker,
 ) (http.ServerMaker, func(), error) {
-	httpServer := adapter_http.NewHttpServer(eg, Cfg, UserService, tokenMaker)
-	httpServer.Start(ctx)
-	httpServer.Config()
-	err := httpServer.HttpMiddleware()
+	httpServer := adapter_http.NewHTTPServer(ctx, Cfg, UserService, tokenMaker)
+	err := httpServer.Start(ctx)
 	if err != nil {
-		zap.S().Fatal("middleware error:", err)
+		zap.S().Fatal("failed to start http server:", err)
 	}
+	httpServer.Config()
+	//err = httpServer.HTTPMiddleware()
+	//if err != nil {
+	//	zap.S().Fatal("middleware error:", err)
+	//}
 
 	httpServer.SetupRouter()
 	return httpServer, func() { httpServer.Close(ctx) }, nil

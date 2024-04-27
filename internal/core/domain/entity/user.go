@@ -8,9 +8,23 @@ import (
 type UserRole string
 
 const (
+	TypeA = iota
+	TypeB
+	TypeC
+	TypeD
+)
+
+const (
 	UserRoleAdmin    UserRole = "admin"
 	UserRoleCustomer UserRole = "customer"
 )
+
+var CompanyTypes = map[int]string{
+	TypeA: "Type A",
+	TypeB: "Type B",
+	TypeC: "Type C",
+	TypeD: "Type D",
+}
 
 type User struct {
 	ID             uuid.UUID
@@ -20,7 +34,7 @@ type User struct {
 	Email          string
 	PhoneNumber    string
 	CompanyName    string
-	CompanyType    int
+	CompanyType    string
 	CompanyWebSite string
 	PasswordHash   string
 	CreatedAt      time.Time

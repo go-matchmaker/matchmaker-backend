@@ -12,7 +12,7 @@ const (
 type (
 	Container struct {
 		App       `yaml:"app"`
-		Log       `yaml:"logger"`
+		Log       `yaml:"log"`
 		HTTP      *HTTP      `yaml:"http"`
 		Token     *Token     `yaml:"token"`
 		Dragonfly *Dragonfly `yaml:"dragonfly"`
@@ -36,8 +36,12 @@ type (
 	Dragonfly struct {
 		Host     string `env-required:"true" yaml:"host" env:"REDIS_HOST"`
 		Port     int    `env-required:"true" yaml:"port" env:"REDIS_PORT"`
-		Password string `env-required:"true" yaml:"password" env:"REDIS_PASSWORD"`
-		DbNumber int    `env-required:"true" yaml:"db_number" env:"REDIS_DB_NUMBER"`
+		DBNumber int    `env-required:"true" yaml:"db_number" env:"REDIS_DB_NUMBER"`
+	}
+
+	HTTP struct {
+		Host string `env-required:"true" yaml:"host" env:"HTTP_HOST"`
+		Port int    `env-required:"true" yaml:"port" env:"HTTP_PORT"`
 	}
 
 	PSQL struct {
@@ -47,16 +51,6 @@ type (
 		User     string `env-required:"true" yaml:"user" env:"DB_USER"`
 		Password string `env-required:"true" yaml:"password" env:"DB_PASSWORD"`
 		Name     string `env-required:"true" yaml:"name" env:"DB_NAME"`
-	}
-
-	HTTP struct {
-		Host string `env-required:"true" yaml:"host" env:"HTTP_HOST"`
-		Port int    `env-required:"true" yaml:"port" env:"HTTP_PORT"`
-	}
-
-	Kafka struct {
-		Host string `env-required:"true" yaml:"host" env:"KAFKA_HOST"`
-		Port int    `env-required:"true" yaml:"port" env:"KAFKA_PORT"`
 	}
 
 	Settings struct {

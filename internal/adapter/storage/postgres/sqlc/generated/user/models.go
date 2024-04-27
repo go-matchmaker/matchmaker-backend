@@ -62,7 +62,7 @@ type Users struct {
 	Email          string    `json:"email"`
 	PhoneNumber    string    `json:"phone_number"`
 	CompanyName    string    `json:"company_name"`
-	CompanyType    int32     `json:"company_type"`
+	CompanyType    string    `json:"company_type"`
 	CompanyWebsite string    `json:"company_website"`
 	PasswordHash   string    `json:"password_hash"`
 	CreatedAt      time.Time `json:"created_at"`

@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/Masterminds/squirrel"
-	"github.com/bulutcan99/company-matcher/internal/adapter/config"
-	"github.com/bulutcan99/company-matcher/internal/core/port/db"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"time"
 )
 
@@ -21,16 +20,14 @@ var (
 
 type (
 	postgres struct {
-		eg           *errgroup.Group
 		cfg          *config.Container
 		queryBuilder *squirrel.StatementBuilderType
 		pool         *pgxpool.Pool
 	}
 )
 
-func NewDB(eg *errgroup.Group, cfg *config.Container) db.EngineMaker {
+func NewDB(cfg *config.Container) db.EngineMaker {
 	psqlDB := &postgres{
-		eg:  eg,
 		cfg: cfg,
 	}
 	queryBuilder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
@@ -40,6 +37,20 @@ func NewDB(eg *errgroup.Group, cfg *config.Container) db.EngineMaker {
 }
 
 func (ps *postgres) Start(ctx context.Context) error {
+	url := ps.getURL()
+
+	go func() {
+		err := ps.connect(ctx, url)
+		if err != nil {
+			zap.S().Fatal("PostgreSQL connection failed", err)
+		}
+	}()
+
+	zap.S().Info("Connected to PostgreSQL 🎉")
+	return nil
+}
+
+func (ps *postgres) getURL() string {
 	url := fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable",
 		ps.cfg.PSQL.Conn,
 		ps.cfg.PSQL.User,
@@ -48,17 +59,7 @@ func (ps *postgres) Start(ctx context.Context) error {
 		ps.cfg.PSQL.Port,
 		ps.cfg.PSQL.Name,
 	)
-
-	ps.eg.Go(func() error {
-		return ps.connect(ctx, url)
-	})
-
-	ps.eg.Go(func() error {
-		return ps.ping(ctx)
-	})
-
-	zap.S().Info("Connected to PostgreSQL 🎉")
-	return nil
+	return url
 }
 
 func (ps *postgres) ping(ctx context.Context) error {
@@ -67,15 +68,21 @@ func (ps *postgres) ping(ctx context.Context) error {
 			return err
 		}
 	}
+	zap.S().Info("PostgreSQL is ready to serve")
 	return nil
 }
 
 func (ps *postgres) connect(ctx context.Context, url string) error {
 	var lastErr error
 	for ps.cfg.Settings.PSQLConnAttempts > 0 {
+		zap.S().Info("Connecting to PostgreSQL...")
 		ps.pool, lastErr = pgxpool.New(ctx, url)
 		if lastErr == nil {
-			return nil
+			err := ps.ping(ctx)
+			if err == nil {
+				zap.S().Info("PostgreSQL Pong! 🐘")
+				return nil
+			}
 		}
 
 		ps.cfg.Settings.PSQLConnAttempts--
@@ -86,21 +93,11 @@ func (ps *postgres) connect(ctx context.Context, url string) error {
 }
 
 func (ps *postgres) Close(ctx context.Context) error {
-	ps.eg.Go(func() error {
-		select {
-		case <-ctx.Done():
-			zap.S().Info("Context is done. Shutting down server...")
-			ps.pool.Close()
-			return nil
-		}
-	})
+	zap.S().Info("Postgres Context is done. Shutting down server...")
+	ps.pool.Close()
 	return nil
 }
 
 func (ps *postgres) GetDB() *pgxpool.Pool {
 	return ps.pool
-}
-
-func (ps *postgres) GetURL() string {
-	return ps.pool.Config().ConnString()
 }

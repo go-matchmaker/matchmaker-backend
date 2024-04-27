@@ -1,8 +1,8 @@
 package converter
 
 import (
-	"github.com/bulutcan99/company-matcher/internal/core/domain/entity"
-	"github.com/bulutcan99/company-matcher/internal/core/dto"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/dto"
 	"github.com/google/uuid"
 	"time"
 )
@@ -12,6 +12,8 @@ func UserRegisterToModel(userDto *dto.UserRegister, userRole entity.UserRole, pa
 	if err != nil {
 		return nil, err
 	}
+
+	compType := entity.CompanyTypes[userDto.CompanyType]
 	return &entity.User{
 		ID:             id,
 		UserRole:       userRole,
@@ -20,7 +22,7 @@ func UserRegisterToModel(userDto *dto.UserRegister, userRole entity.UserRole, pa
 		Email:          userDto.Email,
 		PhoneNumber:    userDto.PhoneNumber,
 		CompanyName:    userDto.CompanyName,
-		CompanyType:    userDto.CompanyType,
+		CompanyType:    compType,
 		CompanyWebSite: userDto.CompanyWebSite,
 		PasswordHash:   pass,
 		CreatedAt:      time.Now(),

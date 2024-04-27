@@ -1,10 +1,10 @@
 package http
 
 import (
-	"github.com/bulutcan99/company-matcher/internal/adapter/converter"
-	"github.com/bulutcan99/company-matcher/internal/core/domain/entity"
-	"github.com/bulutcan99/company-matcher/internal/core/dto"
-	"github.com/bulutcan99/company-matcher/internal/core/util"
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/converter"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/dto"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/util"
 	"go.uber.org/zap"
 
 	"github.com/goccy/go-json"
@@ -12,12 +12,12 @@ import (
 )
 
 func (s *server) RegisterUser(c fiber.Ctx) error {
-	var reqBody *dto.UserRegister
+	reqBody := new(dto.UserRegister)
 	body := c.Body()
 	if err := json.Unmarshal(body, reqBody); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
-			"msg":   "error while trying to parse body",
+			"msg":   "error while trying to parse body" + err.Error(),
 		})
 	}
 

@@ -9,7 +9,7 @@ token:
   symmetric_key: 'secret'
   ttl: 3600
 
-redis:
+dragonfly:
   host: 'localhost'
   port: 6379
   password: 'pass'
