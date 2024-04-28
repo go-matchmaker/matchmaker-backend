@@ -26,7 +26,6 @@ WHERE email = $1 LIMIT 1;
 -- name: UpdateUser :one
 UPDATE users
 SET
-    user_role = COALESCE(sqlc.narg(user_role), user_role),
     name = COALESCE(sqlc.narg(name), name),
     surname = COALESCE(sqlc.narg(surname), surname),
     email = COALESCE(sqlc.narg(email), email),
@@ -39,3 +38,7 @@ SET
 WHERE
 id = sqlc.arg(id)
 RETURNING *;
+
+-- name: DeleteUser :exec
+DELETE FROM users
+WHERE id = $1;

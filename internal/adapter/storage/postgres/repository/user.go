@@ -35,3 +35,32 @@ func (r *UserRepository) Insert(ctx context.Context, userModel *entity.User) (*u
 	userEntity, err := r.querier.InsertUser(ctx, r.db, &userArg)
 	return &userEntity.ID, err
 }
+
+func (r *UserRepository) Update(ctx context.Context, userModel *entity.User) (*entity.User, error) {
+	userConv := converter.UserModelToUpdateArg(userModel)
+	userM, err := r.querier.UpdateUser(ctx, r.db, userConv)
+	if err != nil {
+		return nil, err
+	}
+	return converter.ArgToUserModel(userM), nil
+}
+
+func (r *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, error) {
+	userM, err := r.querier.GetUser(ctx, r.db, id)
+	if err != nil {
+		return entity.User{}, err
+	}
+	return *converter.ArgToUserModel(userM), nil
+}
+
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
+	userM, err := r.querier.GetUserByEmail(ctx, r.db, email)
+	if err != nil {
+		return entity.User{}, err
+	}
+	return *converter.ArgToUserModel(userM), nil
+}
+
+func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	return r.querier.DeleteUser(ctx, r.db, id)
+}

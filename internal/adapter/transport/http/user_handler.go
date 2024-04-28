@@ -15,41 +15,25 @@ func (s *server) RegisterUser(c fiber.Ctx) error {
 	reqBody := new(dto.UserRegister)
 	body := c.Body()
 	if err := json.Unmarshal(body, reqBody); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   "error while trying to parse body" + err.Error(),
-		})
+		return s.responseFactory.Response(s.ctx, true, "error while trying to parse body", fiber.StatusBadRequest)
 	}
 
 	hashedPassword, err := util.HashPassword(reqBody.Password)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   "error while hashing user password: " + err.Error(),
-		})
+		return s.responseFactory.Response(s.ctx, true, "error while trying to hash password", fiber.StatusBadRequest)
 	}
 
 	userModel, err := converter.UserRegisterToModel(reqBody, entity.UserRoleCustomer, hashedPassword)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   "error while getting user model: " + err.Error(),
-		})
+		return s.responseFactory.Response(s.ctx, true, "error while trying to convert user register to model", fiber.StatusBadRequest)
 	}
 	userID, err := s.userService.Register(s.ctx, userModel)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   "error while trying to register user: " + err.Error(),
-		})
+		return s.responseFactory.Response(s.ctx, true, "error while trying to register user", fiber.StatusBadRequest)
 	}
 
 	zap.S().Info("User Registered Successfully! User:", userID)
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error": false,
-		"msg":   "user registered successfully",
-		"data":  userID,
-	})
+	return s.responseFactory.Response(s.ctx, false, "user registered successfully", fiber.StatusOK)
 }
 
 //

@@ -13,6 +13,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const DeleteUser = `-- name: DeleteUser :exec
+DELETE FROM users
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, db DBTX, id uuid.UUID) error {
+	_, err := db.Exec(ctx, DeleteUser, id)
+	return err
+}
+
 const GetUser = `-- name: GetUser :one
 SELECT id, user_role, name, surname, email, phone_number, company_name, company_type, company_website, password_hash, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
@@ -132,23 +142,21 @@ func (q *Queries) InsertUser(ctx context.Context, db DBTX, arg *InsertUserParams
 const UpdateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
-    user_role = COALESCE($1, user_role),
-    name = COALESCE($2, name),
-    surname = COALESCE($3, surname),
-    email = COALESCE($4, email),
-    phone_number = COALESCE($5, phone_number),
-    company_name = COALESCE($6, company_name),
-    company_type = COALESCE($7, company_type),
-    company_website = COALESCE($8, company_website),
-    password_hash = COALESCE($9, password_hash),
-    updated_at = COALESCE($10, updated_at)
+    name = COALESCE($1, name),
+    surname = COALESCE($2, surname),
+    email = COALESCE($3, email),
+    phone_number = COALESCE($4, phone_number),
+    company_name = COALESCE($5, company_name),
+    company_type = COALESCE($6, company_type),
+    company_website = COALESCE($7, company_website),
+    password_hash = COALESCE($8, password_hash),
+    updated_at = COALESCE($9, updated_at)
 WHERE
-id = $11
+id = $10
 RETURNING id, user_role, name, surname, email, phone_number, company_name, company_type, company_website, password_hash, created_at, updated_at
 `
 
 type UpdateUserParams struct {
-	UserRole       NullUserRole       `json:"user_role"`
 	Name           pgtype.Text        `json:"name"`
 	Surname        pgtype.Text        `json:"surname"`
 	Email          pgtype.Text        `json:"email"`
@@ -163,7 +171,6 @@ type UpdateUserParams struct {
 
 func (q *Queries) UpdateUser(ctx context.Context, db DBTX, arg *UpdateUserParams) (*Users, error) {
 	row := db.QueryRow(ctx, UpdateUser,
-		arg.UserRole,
 		arg.Name,
 		arg.Surname,
 		arg.Email,

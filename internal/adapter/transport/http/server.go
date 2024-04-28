@@ -21,12 +21,13 @@ var (
 
 type (
 	server struct {
-		ctx          context.Context
-		cfg          *config.Container
-		app          *fiber.App
-		cfgFiber     *fiber.Config
-		userService  service.UserMaker
-		tokenService token.TokenMaker
+		ctx             context.Context
+		cfg             *config.Container
+		app             *fiber.App
+		cfgFiber        *fiber.Config
+		responseFactory http.ResponseFactory
+		userService     service.UserMaker
+		tokenService    token.TokenMaker
 	}
 )
 
@@ -36,12 +37,15 @@ func NewHTTPServer(
 	userService service.UserMaker,
 	tokenService token.TokenMaker,
 ) http.ServerMaker {
+	fiberApp := fiber.New()
+	responser := NewFiberResponseFactory(fiberApp.AcquireCtx())
 	return &server{
-		app:          fiber.New(),
-		ctx:          ctx,
-		cfg:          cfg,
-		userService:  userService,
-		tokenService: tokenService,
+		app:             fiberApp,
+		ctx:             ctx,
+		cfg:             cfg,
+		responseFactory: responser,
+		userService:     userService,
+		tokenService:    tokenService,
 	}
 }
 
