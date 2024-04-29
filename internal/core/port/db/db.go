@@ -10,4 +10,5 @@ type EngineMaker interface {
 	Close(ctx context.Context) error
 	GetDB() *pgxpool.Pool
 	Migration() error
+	Drop() error
 }

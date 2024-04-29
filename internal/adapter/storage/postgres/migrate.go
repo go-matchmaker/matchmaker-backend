@@ -63,3 +63,21 @@ func (ps *pdb) migrationSettings() error {
 	}
 	return nil
 }
+
+func (ps *pdb) Drop() error {
+	connURL := ps.getURL()
+	source, err := iofs.New(migrationsFS, _migrationFilePath)
+	if err != nil {
+		zap.S().Fatal("Migrate: drop error: %s", err)
+	}
+	migration, err := migrate.NewWithSourceInstance("iofs", source, connURL)
+	if err != nil {
+		zap.S().Fatal("Migrate: drop error: %s", err)
+	}
+	err = migration.Down()
+	if err != nil {
+		zap.S().Fatal("Migrate: drop error: %s", err)
+	}
+	zap.S().Info("Migrate: drop completed")
+	return nil
+}

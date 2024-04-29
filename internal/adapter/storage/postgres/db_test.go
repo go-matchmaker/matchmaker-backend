@@ -2,39 +2,95 @@ package psql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
-	"github.com/golang-migrate/migrate/v4"
+	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/testcontainers/testcontainers-go/wait"
 	"log"
-	"os"
 	"testing"
 	"time"
 )
 
-var connURL = ""
-var parrallel = false
-var sleepTime = time.Millisecond * 500
+var (
+	sleepTime = time.Millisecond * 500
+	conn      = "postgresql"
+)
 
-func migration(uri string) (*migrate.Migrate, error) {
-	path := _migrationFilePath
-
-	m, err := migrate.New(path, uri)
+func setup(url string) *config.Container {
+	endpoint := strings.Split(url, ":")
+	host := endpoint[0]
+	port, err := strconv.Atoi(endpoint[1])
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect migrator: %w", err)
+		log.Fatal("failed to convert port to int: ", err)
+	}
+	return &config.Container{
+		PSQL: &config.PSQL{
+			Conn:     "postgresql",
+			Host:     host,
+			Port:     port,
+			User:     "testuser",
+			Password: "testpassword",
+			Name:     "testdb",
+		},
+		Settings: &config.Settings{
+			PSQLConnTimeout:  5,
+			PSQLConnAttempts: 5},
+	}
+}
+
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+
+	container, err := postgres.RunContainer(ctx,
+		testcontainers.WithImage("postgres:16"),
+		postgres.WithDatabase("testdb"),
+		postgres.WithUsername("testuser"),
+		postgres.WithPassword("testpassword"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(5*time.Second),
+		),
+	)
+	if err != nil {
+		log.Fatalln("failed to load container:", err)
+	}
+	getHost, err := container.Endpoint(ctx, "")
+	if err != nil {
+		log.Fatalln("failed to load container:", err)
+	}
+	cfg := setup(getHost)
+	newDB := getConnection(ctx, cfg)
+
+	err = newDB.Migration()
+	if err != nil {
+		log.Fatal("failed to migrate db: ", err)
 	}
 
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return nil, fmt.Errorf("failed to migrate up: %w", err)
-	}
-	return m, nil
+	res := m.Run()
+
+	err = newDB.Drop()
+
+	os.Exit(res)
 }
-func TestMain(m *testing.M) {
+
+func getConnection(ctx context.Context, cfg *config.Container) db.EngineMaker {
+	newDB := NewDB(cfg)
+	err := newDB.Start(ctx)
+	if err != nil {
+		log.Fatal("failed to connect to database: ", err)
+	}
+	return newDB
+}
+
+func TestConnection(t *testing.T) {
 	ctx := context.Background()
 
 	container, err := postgres.RunContainer(ctx,
@@ -51,29 +107,18 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln("failed to load container:", err)
 	}
-
-	connURL, err = container.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
-		log.Fatalln("failed to get connection string:", err)
+		log.Fatalf("failed to load container: %v", err)
 	}
+	defer container.Terminate(ctx)
 
-	migration, err := migration(connURL)
+	endpoints, err := container.Endpoint(ctx, "")
 	if err != nil {
-		log.Fatal("failed to migrate db: ", err)
+		log.Fatalf("failed to get container endpoints: %v", err)
 	}
+	cfg := setup(endpoints)
+	engine := getConnection(ctx, cfg)
 
-	res := m.Run()
-
-	migration.Drop()
-
-	os.Exit(res)
-}
-
-func getConnection(ctx context.Context, cfg *config.Container) db.EngineMaker {
-	newDB := NewDB(cfg)
-	err := newDB.Start(ctx)
-	if err != nil {
-		log.Fatal("failed to connect to database: ", err)
-	}
-	return newDB
+	assert.NotNil(t, engine, "Failed to establish connection")
+	fmt.Println("Connection established")
 }
