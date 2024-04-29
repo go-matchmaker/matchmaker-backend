@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	_           db.EngineMaker = (*postgres)(nil)
-	PostgresSet                = wire.NewSet(NewDB)
+	_      db.EngineMaker = (*pdb)(nil)
+	pdbSet                = wire.NewSet(NewDB)
 )
 
 type (
-	postgres struct {
+	pdb struct {
 		cfg          *config.Container
 		queryBuilder *squirrel.StatementBuilderType
 		pool         *pgxpool.Pool
@@ -27,7 +27,7 @@ type (
 )
 
 func NewDB(cfg *config.Container) db.EngineMaker {
-	psqlDB := &postgres{
+	psqlDB := &pdb{
 		cfg: cfg,
 	}
 	queryBuilder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
@@ -36,21 +36,21 @@ func NewDB(cfg *config.Container) db.EngineMaker {
 	return psqlDB
 }
 
-func (ps *postgres) Start(ctx context.Context) error {
+func (ps *pdb) Start(ctx context.Context) error {
 	url := ps.getURL()
 
 	go func() {
 		err := ps.connect(ctx, url)
 		if err != nil {
-			zap.S().Fatal("PostgreSQL connection failed", err)
+			zap.S().Fatal("pdbQL connection failed", err)
 		}
 	}()
 
-	zap.S().Info("Connected to PostgreSQL 🎉")
+	zap.S().Info("Connected to pdbQL 🎉")
 	return nil
 }
 
-func (ps *postgres) getURL() string {
+func (ps *pdb) getURL() string {
 	url := fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable",
 		ps.cfg.PSQL.Conn,
 		ps.cfg.PSQL.User,
@@ -62,42 +62,42 @@ func (ps *postgres) getURL() string {
 	return url
 }
 
-func (ps *postgres) ping(ctx context.Context) error {
+func (ps *pdb) ping(ctx context.Context) error {
 	if ps.pool != nil {
 		if err := ps.pool.Ping(ctx); err != nil {
 			return err
 		}
 	}
-	zap.S().Info("PostgreSQL is ready to serve")
+	zap.S().Info("pdbQL is ready to serve")
 	return nil
 }
 
-func (ps *postgres) connect(ctx context.Context, url string) error {
+func (ps *pdb) connect(ctx context.Context, url string) error {
 	var lastErr error
 	for ps.cfg.Settings.PSQLConnAttempts > 0 {
-		zap.S().Info("Connecting to PostgreSQL...")
+		zap.S().Info("Connecting to pdbQL...")
 		ps.pool, lastErr = pgxpool.New(ctx, url)
 		if lastErr == nil {
 			err := ps.ping(ctx)
 			if err == nil {
-				zap.S().Info("PostgreSQL Pong! 🐘")
+				zap.S().Info("pdbQL Pong! 🐘")
 				return nil
 			}
 		}
 
 		ps.cfg.Settings.PSQLConnAttempts--
-		zap.S().Warnf("PostgreSQL connection failed, attempts left: %d", ps.cfg.Settings.PSQLConnAttempts)
+		zap.S().Warnf("pdbQL connection failed, attempts left: %d", ps.cfg.Settings.PSQLConnAttempts)
 		time.Sleep(time.Duration(ps.cfg.Settings.PSQLConnTimeout) * time.Second)
 	}
 	return lastErr
 }
 
-func (ps *postgres) Close(ctx context.Context) error {
-	zap.S().Info("Postgres Context is done. Shutting down server...")
+func (ps *pdb) Close(ctx context.Context) error {
+	zap.S().Info("pdb Context is done. Shutting down server...")
 	ps.pool.Close()
 	return nil
 }
 
-func (ps *postgres) GetDB() *pgxpool.Pool {
+func (ps *pdb) GetDB() *pgxpool.Pool {
 	return ps.pool
 }

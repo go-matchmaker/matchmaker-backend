@@ -21,7 +21,7 @@ const (
 	_defaultTimeout    = time.Second
 )
 
-func (ps *postgres) Migration() error {
+func (ps *pdb) Migration() error {
 	var (
 		attempts = _defaultAttempts
 		err      error
@@ -43,7 +43,7 @@ func (ps *postgres) Migration() error {
 	return nil
 }
 
-func (ps *postgres) migrationSettings() error {
+func (ps *pdb) migrationSettings() error {
 	connURL := ps.getURL()
 	source, err := iofs.New(migrationsFS, _migrationFilePath)
 	if err != nil {
