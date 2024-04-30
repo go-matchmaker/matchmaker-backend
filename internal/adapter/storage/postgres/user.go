@@ -1,4 +1,4 @@
-package repository
+package psql
 
 import (
 	"context"
@@ -32,6 +32,11 @@ func NewUserRepository(db db.EngineMaker) repository.UserMaker {
 func (r *UserRepository) Insert(ctx context.Context, userModel *entity.User) (*uuid.UUID, error) {
 	userConv := converter.UserModelToArg(userModel)
 	userArg := user.InsertUserParams(*userConv)
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+	userArg.ID = id
 	userEntity, err := r.querier.InsertUser(ctx, r.db, &userArg)
 	return &userEntity.ID, err
 }

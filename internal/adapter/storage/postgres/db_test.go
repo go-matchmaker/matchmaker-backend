@@ -19,9 +19,37 @@ import (
 )
 
 var (
-	sleepTime = time.Millisecond * 500
-	conn      = "postgresql"
+	sleepTime = 5 * time.Second
+	url       = ""
 )
+
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+
+	container, err := postgres.RunContainer(ctx,
+		testcontainers.WithImage("postgres:16"),
+		postgres.WithDatabase("testdb"),
+		postgres.WithUsername("testuser"),
+		postgres.WithPassword("testpassword"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(5*time.Second),
+		),
+	)
+	if err != nil {
+		log.Fatalln("failed to load container:", err)
+	}
+	getHost, err := container.Endpoint(ctx, "")
+	if err != nil {
+		log.Fatalln("failed to load container:", err)
+	}
+	url = getHost
+
+	res := m.Run()
+
+	os.Exit(res)
+}
 
 func setup(url string) *config.Container {
 	endpoint := strings.Split(url, ":")
@@ -45,73 +73,34 @@ func setup(url string) *config.Container {
 	}
 }
 
-func TestMain(m *testing.M) {
-	ctx := context.Background()
-
-	container, err := postgres.RunContainer(ctx,
-		testcontainers.WithImage("postgres:16"),
-		postgres.WithDatabase("testdb"),
-		postgres.WithUsername("testuser"),
-		postgres.WithPassword("testpassword"),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second),
-		),
-	)
-	if err != nil {
-		log.Fatalln("failed to load container:", err)
-	}
-	getHost, err := container.Endpoint(ctx, "")
-	if err != nil {
-		log.Fatalln("failed to load container:", err)
-	}
-	cfg := setup(getHost)
-	newDB := getConnection(ctx, cfg)
-
-	err = newDB.Migration()
-	if err != nil {
-		log.Fatal("failed to migrate db: ", err)
-	}
-
-	res := m.Run()
-
-	err = newDB.Drop()
-
-	os.Exit(res)
-}
-
-func getConnection(ctx context.Context, cfg *config.Container) db.EngineMaker {
+func getConnection(ctx context.Context, url string) db.EngineMaker {
+	fmt.Println("URL: ", url)
+	cfg := setup(url)
 	newDB := NewDB(cfg)
 	err := newDB.Start(ctx)
 	if err != nil {
 		log.Fatal("failed to connect to database: ", err)
 	}
+	err = newDB.Migration()
+	if err != nil {
+		log.Fatal("failed to migrate db: ", err)
+	}
 	return newDB
+}
+
+func stopMigration(db db.EngineMaker) error {
+	err := db.Drop()
+	if err != nil {
+		log.Println("failed to drop db: ", err)
+		return err
+	}
+	return nil
 }
 
 func TestConnection(t *testing.T) {
 	ctx := context.Background()
+	engine := getConnection(ctx, url)
 
-	container, err := postgres.RunContainer(ctx,
-		testcontainers.WithImage("postgres:16"),
-		postgres.WithDatabase("testdb"),
-		postgres.WithUsername("user"),
-		postgres.WithPassword("foobar"),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second),
-		),
-	)
-	assert.NoError(t, err)
-	defer container.Terminate(ctx)
-
-	endpoints, err := container.Endpoint(ctx, "")
-	assert.NoError(t, err)
-	cfg := setup(endpoints)
-	engine := getConnection(ctx, cfg)
-
-	assert.NotNil(t, engine, "Engine is on")
+	assert.NotNil(t, engine)
 	fmt.Println("Connection established")
 }
