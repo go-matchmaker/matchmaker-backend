@@ -104,21 +104,14 @@ func TestConnection(t *testing.T) {
 				WithStartupTimeout(5*time.Second),
 		),
 	)
-	if err != nil {
-		log.Fatalln("failed to load container:", err)
-	}
-	if err != nil {
-		log.Fatalf("failed to load container: %v", err)
-	}
+	assert.NoError(t, err)
 	defer container.Terminate(ctx)
 
 	endpoints, err := container.Endpoint(ctx, "")
-	if err != nil {
-		log.Fatalf("failed to get container endpoints: %v", err)
-	}
+	assert.NoError(t, err)
 	cfg := setup(endpoints)
 	engine := getConnection(ctx, cfg)
 
-	assert.NotNil(t, engine, "Failed to establish connection")
+	assert.NotNil(t, engine, "Engine is on")
 	fmt.Println("Connection established")
 }
