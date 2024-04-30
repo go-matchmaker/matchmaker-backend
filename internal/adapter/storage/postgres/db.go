@@ -101,3 +101,8 @@ func (ps *pdb) Close(ctx context.Context) error {
 func (ps *pdb) GetDB() *pgxpool.Pool {
 	return ps.pool
 }
+
+func (ps *pdb) Execute(ctx context.Context, query string, args ...any) error {
+	_, err := ps.pool.Exec(ctx, query, args...)
+	return err
+}

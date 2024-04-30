@@ -2,9 +2,12 @@ package psql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -18,14 +21,15 @@ import (
 	"time"
 )
 
+const ()
+
 var (
-	sleepTime = 5 * time.Second
+	sleepTime = 2 * time.Second
 	url       = ""
+	ctx       = context.Background()
 )
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
 	container, err := postgres.RunContainer(ctx,
 		testcontainers.WithImage("postgres:16"),
 		postgres.WithDatabase("testdb"),
@@ -45,8 +49,14 @@ func TestMain(m *testing.M) {
 		log.Fatalln("failed to load container:", err)
 	}
 	url = getHost
-
+	migrateURL := "postgres://testuser:testpassword@" + url + "/testdb?sslmode=disable"
+	fmt.Println("url: ", migrateURL, _migrationFilePath)
+	migrateUp, err := MigrateUp(migrateURL)
+	if err != nil {
+		log.Fatal("failed to migrate db: ", err)
+	}
 	res := m.Run()
+	migrateUp.Drop()
 
 	os.Exit(res)
 }
@@ -73,33 +83,39 @@ func setup(url string) *config.Container {
 	}
 }
 
-func getConnection(ctx context.Context, url string) db.EngineMaker {
-	fmt.Println("URL: ", url)
+func getConnection() db.EngineMaker {
 	cfg := setup(url)
 	newDB := NewDB(cfg)
 	err := newDB.Start(ctx)
 	if err != nil {
 		log.Fatal("failed to connect to database: ", err)
 	}
-	err = newDB.Migration()
-	if err != nil {
-		log.Fatal("failed to migrate db: ", err)
-	}
 	return newDB
 }
 
-func stopMigration(db db.EngineMaker) error {
-	err := db.Drop()
+func cleanUp() {
+	getConnection().Execute(ctx, "DELETE FROM users")
+}
+
+func MigrateUp(uri string) (*migrate.Migrate, error) {
+	source, err := iofs.New(migrationsFS, _migrationFilePath)
 	if err != nil {
-		log.Println("failed to drop db: ", err)
-		return err
+		return nil, err
 	}
-	return nil
+
+	migration, err := migrate.NewWithSourceInstance("iofs", source, uri)
+	if err != nil {
+
+		return nil, err
+	}
+	if err := migration.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("failed to migrate up: %w", err)
+	}
+	return migration, nil
 }
 
 func TestConnection(t *testing.T) {
-	ctx := context.Background()
-	engine := getConnection(ctx, url)
+	engine := getConnection()
 
 	assert.NotNil(t, engine)
 	fmt.Println("Connection established")

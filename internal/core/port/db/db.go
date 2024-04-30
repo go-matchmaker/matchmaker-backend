@@ -9,6 +9,7 @@ type EngineMaker interface {
 	Start(ctx context.Context) error
 	Close(ctx context.Context) error
 	GetDB() *pgxpool.Pool
+	Execute(ctx context.Context, query string, args ...any) error
 	Migration() error
 	Drop() error
 }

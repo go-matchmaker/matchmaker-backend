@@ -10,7 +10,6 @@ import (
 	adapter_service "github.com/go-matchmaker/matchmaker-server/internal/adapter/service"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/dragonfly"
 	psql "github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres"
-	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres/repository"
 	adapter_http "github.com/go-matchmaker/matchmaker-server/internal/adapter/transport/http"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/cache"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
@@ -32,7 +31,7 @@ func InitApp(
 		New,
 		dbEngineFunc,
 		dragonflyEngineFunc,
-		repository.UserRepositorySet,
+		psql.UserRepositorySet,
 		adapter_service.UserServiceSet,
 		paseto.PasetoSet,
 		httpServerFunc,
