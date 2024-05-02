@@ -13,6 +13,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const DeleteAllUsers = `-- name: DeleteAllUsers :exec
+DELETE FROM users
+`
+
+func (q *Queries) DeleteAllUsers(ctx context.Context, db DBTX) error {
+	_, err := db.Exec(ctx, DeleteAllUsers)
+	return err
+}
+
 const DeleteUser = `-- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1

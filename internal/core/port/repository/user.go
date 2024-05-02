@@ -12,4 +12,5 @@ type UserMaker interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, error)
 	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	DeleteAllUsers(ctx context.Context) error
 }

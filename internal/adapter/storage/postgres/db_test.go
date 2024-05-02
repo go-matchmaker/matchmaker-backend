@@ -8,7 +8,6 @@ import (
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"os"
@@ -50,14 +49,12 @@ func TestMain(m *testing.M) {
 	}
 	url = getHost
 	migrateURL := "postgres://testuser:testpassword@" + url + "/testdb?sslmode=disable"
-	fmt.Println("url: ", migrateURL, _migrationFilePath)
 	migrateUp, err := MigrateUp(migrateURL)
 	if err != nil {
 		log.Fatal("failed to migrate db: ", err)
 	}
 	res := m.Run()
 	migrateUp.Drop()
-
 	os.Exit(res)
 }
 
@@ -93,10 +90,6 @@ func getConnection() db.EngineMaker {
 	return newDB
 }
 
-func cleanUp() {
-	getConnection().Execute(ctx, "DELETE FROM users")
-}
-
 func MigrateUp(uri string) (*migrate.Migrate, error) {
 	source, err := iofs.New(migrationsFS, _migrationFilePath)
 	if err != nil {
@@ -112,11 +105,4 @@ func MigrateUp(uri string) (*migrate.Migrate, error) {
 		return nil, fmt.Errorf("failed to migrate up: %w", err)
 	}
 	return migration, nil
-}
-
-func TestConnection(t *testing.T) {
-	engine := getConnection()
-
-	assert.NotNil(t, engine)
-	fmt.Println("Connection established")
 }

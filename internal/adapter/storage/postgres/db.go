@@ -42,11 +42,11 @@ func (ps *pdb) Start(ctx context.Context) error {
 	go func() {
 		err := ps.connect(ctx, url)
 		if err != nil {
-			zap.S().Fatal("pdbQL connection failed", err)
+			zap.S().Fatal("Postgres connection failed", err)
 		}
 	}()
 
-	zap.S().Info("Connected to pdbQL 🎉")
+	zap.S().Info("Connected to Postgres 🎉")
 	return nil
 }
 
@@ -68,25 +68,25 @@ func (ps *pdb) ping(ctx context.Context) error {
 			return err
 		}
 	}
-	zap.S().Info("pdbQL is ready to serve")
+	zap.S().Info("Postgres is ready to serve")
 	return nil
 }
 
 func (ps *pdb) connect(ctx context.Context, url string) error {
 	var lastErr error
 	for ps.cfg.Settings.PSQLConnAttempts > 0 {
-		zap.S().Info("Connecting to pdbQL...")
+		zap.S().Info("Connecting to Postgres...")
 		ps.pool, lastErr = pgxpool.New(ctx, url)
 		if lastErr == nil {
 			err := ps.ping(ctx)
 			if err == nil {
-				zap.S().Info("pdbQL Pong! 🐘")
+				zap.S().Info("Postgres Pong! 🐘")
 				return nil
 			}
 		}
 
 		ps.cfg.Settings.PSQLConnAttempts--
-		zap.S().Warnf("pdbQL connection failed, attempts left: %d", ps.cfg.Settings.PSQLConnAttempts)
+		zap.S().Warnf("Postgres connection failed, attempts left: %d", ps.cfg.Settings.PSQLConnAttempts)
 		time.Sleep(time.Duration(ps.cfg.Settings.PSQLConnTimeout) * time.Second)
 	}
 	return lastErr

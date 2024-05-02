@@ -69,3 +69,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (enti
 func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return r.querier.DeleteUser(ctx, r.db, id)
 }
+
+func (r *UserRepository) DeleteAllUsers(ctx context.Context) error {
+	return r.querier.DeleteAllUsers(ctx, r.db)
+}
