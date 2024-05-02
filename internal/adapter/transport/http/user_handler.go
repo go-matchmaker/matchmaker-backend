@@ -18,15 +18,15 @@ func (s *server) DeleteUser(c fiber.Ctx) error {
 	fmt.Println("userID:", userID)
 	id, err := uuid.Parse(userID)
 	if err != nil {
-		return s.responseFactory.Response(true, "error while trying to parse user id", fiber.StatusBadRequest)
+		return s.responseFactory.Response(err, "error while trying to parse user id", fiber.StatusBadRequest)
 	}
 	err = s.userService.DeleteUser(s.ctx, id)
 	if err != nil {
-		return s.responseFactory.Response(true, "error while trying to delete user", fiber.StatusBadRequest)
+		return s.responseFactory.Response(err, "error while trying to delete user", fiber.StatusBadRequest)
 	}
 
 	zap.S().Info("User Deleted Successfully! User:", userID)
-	return s.responseFactory.Response(false, "user deleted successfully", fiber.StatusOK)
+	return s.responseFactory.Response(nil, "user deleted successfully", fiber.StatusOK)
 
 }
 
@@ -34,25 +34,25 @@ func (s *server) RegisterUser(c fiber.Ctx) error {
 	reqBody := new(dto.UserRegister)
 	body := c.Body()
 	if err := json.Unmarshal(body, reqBody); err != nil {
-		return s.responseFactory.Response(true, "error while trying to parse body", fiber.StatusBadRequest)
+		return s.responseFactory.Response(err, "error while trying to parse body", fiber.StatusBadRequest)
 	}
 
 	hashedPassword, err := util.HashPassword(reqBody.Password)
 	if err != nil {
-		return s.responseFactory.Response(true, "error while trying to hash password", fiber.StatusBadRequest)
+		return s.responseFactory.Response(err, "error while trying to hash password", fiber.StatusBadRequest)
 	}
 
 	userModel, err := converter.UserRegisterToModel(reqBody, entity.UserRoleCustomer, hashedPassword)
 	if err != nil {
-		return s.responseFactory.Response(true, "error while trying to convert user register to model", fiber.StatusBadRequest)
+		return s.responseFactory.Response(err, "error while trying to convert user register to model", fiber.StatusBadRequest)
 	}
 	userID, err := s.userService.Register(s.ctx, userModel)
 	if err != nil {
-		return s.responseFactory.Response(true, "error while trying to register user", fiber.StatusBadRequest)
+		return s.responseFactory.Response(err, "error while trying to register user", fiber.StatusBadRequest)
 	}
 
 	zap.S().Info("User Registered Successfully! User:", userID)
-	return s.responseFactory.Response(false, "user registered successfully", fiber.StatusOK)
+	return s.responseFactory.Response(nil, "user registered successfully", fiber.StatusOK)
 }
 
 //

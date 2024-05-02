@@ -192,3 +192,9 @@ proto-generate:
 .PHONY: proto-clean
 proto-clean:
 	rm proto/pb/*.pb.go;
+
+.PHONY: dependency-generate
+dependency-generate: wire-generate sqlc-generate
+
+.PHONY: dependency-clean
+dependency-clean: wire-clean sqlc-clean

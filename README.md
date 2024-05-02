@@ -34,7 +34,9 @@ Facilitates meaningful interactions, leading to productive discussions and poten
 
 
 - TODO:
+Middleware with -> struct config and response factory setup
 Authentication
+WS integration
 Mail auth
 Load Balancing
 Event Streaming for async notifications
@@ -42,3 +44,4 @@ Concurrency control, rate limit, adaptive circuit breaker,
 Some tools like in Pocketbase (like OA2)
 Chained timeout control, adaptive load shedding 
 Powerful middleware design, support: Tracing (OpenTelemetry), Metrics (Prometheus is default), Recovery and more.
+

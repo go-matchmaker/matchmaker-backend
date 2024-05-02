@@ -38,14 +38,12 @@ func NewHTTPServer(
 	tokenService token.TokenMaker,
 ) http.ServerMaker {
 	fiberApp := fiber.New()
-	responser := NewFiberResponseFactory(fiberApp.AcquireCtx())
 	return &server{
-		app:             fiberApp,
-		ctx:             ctx,
-		cfg:             cfg,
-		responseFactory: responser,
-		userService:     userService,
-		tokenService:    tokenService,
+		app:          fiberApp,
+		ctx:          ctx,
+		cfg:          cfg,
+		userService:  userService,
+		tokenService: tokenService,
 	}
 }
 
@@ -74,11 +72,7 @@ func (s *server) Close(ctx context.Context) error {
 
 func (s *server) SetupRouter() {
 	route := s.app.Group("/api/v1")
-	route.Use()
-	route.Get("/ping", func(c fiber.Ctx) error {
-		return c.SendString("pong")
-	})
-
+	route.Get("/health", func(c fiber.Ctx) error { return c.SendString("OK") })
 	route.Post("/register", s.RegisterUser)
 	route.Delete("/delete/:id", s.DeleteUser)
 }
