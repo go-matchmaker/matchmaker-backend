@@ -20,8 +20,8 @@ type App struct {
 	Token       token.TokenMaker
 	PG          db.EngineMaker
 	Dragonfly   cache.EngineMaker
-	UserRepo    repository.UserMaker
-	UserService service.UserMaker
+	UserRepo    repository.UserPort
+	UserService service.UserPort
 }
 
 func New(
@@ -31,8 +31,8 @@ func New(
 	Token token.TokenMaker,
 	PG db.EngineMaker,
 	Dragonfly cache.EngineMaker,
-	UserRepo repository.UserMaker,
-	UserService service.UserMaker,
+	UserRepo repository.UserPort,
+	UserService service.UserPort,
 ) *App {
 	return &App{
 		rw:          rw,

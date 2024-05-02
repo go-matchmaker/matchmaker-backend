@@ -69,7 +69,7 @@ func dragonflyEngineFunc(
 func httpServerFunc(
 	ctx context.Context,
 	Cfg *config.Container,
-	UserService service.UserMaker,
+	UserService service.UserPort,
 	tokenMaker token.TokenMaker,
 ) (http.ServerMaker, func(), error) {
 	httpServer := adapter_http.NewHTTPServer(ctx, Cfg, UserService, tokenMaker)

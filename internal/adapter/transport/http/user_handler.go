@@ -1,15 +1,34 @@
 package http
 
 import (
+	"fmt"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/converter"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/dto"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/util"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v3"
 )
+
+func (s *server) DeleteUser(c fiber.Ctx) error {
+	userID := c.Params("id")
+	fmt.Println("userID:", userID)
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return s.responseFactory.Response(true, "error while trying to parse user id", fiber.StatusBadRequest)
+	}
+	err = s.userService.DeleteUser(s.ctx, id)
+	if err != nil {
+		return s.responseFactory.Response(true, "error while trying to delete user", fiber.StatusBadRequest)
+	}
+
+	zap.S().Info("User Deleted Successfully! User:", userID)
+	return s.responseFactory.Response(false, "user deleted successfully", fiber.StatusOK)
+
+}
 
 func (s *server) RegisterUser(c fiber.Ctx) error {
 	reqBody := new(dto.UserRegister)

@@ -6,7 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserMaker interface {
+type UserPort interface {
+	DeleteUser(ctx context.Context, id uuid.UUID) error
 	Register(ctx context.Context, req *entity.User) (*uuid.UUID, error)
 	// Login(ctx context.Context, req *dto.UserRegister) (*domain.User, string, string, error)
 	// GetUserByID(ctx context.Context, id string) (*model.User, error)

@@ -12,6 +12,7 @@ func (s *server) HTTPMiddleware() error {
 		cors.New(*s.getCorsConfig()),
 		logger.New(),
 		s.security,
+
 	)
 
 	if err != nil {
@@ -25,6 +26,10 @@ func (s *server) getCorsConfig() *cors.Config {
 	return &cors.Config{
 		AllowCredentials: true,
 	}
+}
+
+func (s *server) responseMiddleware(c *fiber.Ctx) error {
+server.
 }
 
 func (s *server) security(c fiber.Ctx) error {

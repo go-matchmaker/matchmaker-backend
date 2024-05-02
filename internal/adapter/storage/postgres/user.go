@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	_                 repository.UserMaker = (*UserRepository)(nil)
-	UserRepositorySet                      = wire.NewSet(NewUserRepository)
+	_                 repository.UserPort = (*UserRepository)(nil)
+	UserRepositorySet                     = wire.NewSet(NewUserRepository)
 )
 
 type UserRepository struct {
@@ -22,7 +22,7 @@ type UserRepository struct {
 	db      *pgxpool.Pool
 }
 
-func NewUserRepository(db db.EngineMaker) repository.UserMaker {
+func NewUserRepository(db db.EngineMaker) repository.UserPort {
 	return &UserRepository{
 		querier: user.New(),
 		db:      db.GetDB(),

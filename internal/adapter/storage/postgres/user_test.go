@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func getUserRepo(newDB db.EngineMaker) repository.UserMaker {
+func getUserRepo(newDB db.EngineMaker) repository.UserPort {
 	userRepo := NewUserRepository(newDB)
 	return userRepo
 }
@@ -44,7 +44,7 @@ func TestCreate(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserMaker) error
+		setup  func(repo repository.UserPort) error
 		input  *entity.User
 		errors bool
 	}{
@@ -91,13 +91,13 @@ func TestGetByID(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserMaker) (*uuid.UUID, error)
+		setup  func(repo repository.UserPort) (*uuid.UUID, error)
 		input  *entity.User
 		errors bool
 	}{
 		{
 			name: "happy path",
-			setup: func(repo repository.UserMaker) (*uuid.UUID, error) {
+			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
 				id, err := repo.Insert(ctx, user)
 				return id, err
 			},
@@ -106,7 +106,7 @@ func TestGetByID(t *testing.T) {
 		},
 		{
 			name: "not found",
-			setup: func(repo repository.UserMaker) (*uuid.UUID, error) {
+			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
 				id, err := uuid.NewV7()
 				return &id, err
 			},
@@ -145,13 +145,13 @@ func TestDeleteUser(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserMaker) (*uuid.UUID, error)
+		setup  func(repo repository.UserPort) (*uuid.UUID, error)
 		input  *entity.User
 		errors bool
 	}{
 		{
 			name: "happy path",
-			setup: func(repo repository.UserMaker) (*uuid.UUID, error) {
+			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
 				id, err := repo.Insert(ctx, user)
 				return id, err
 			},
@@ -160,7 +160,7 @@ func TestDeleteUser(t *testing.T) {
 		},
 		{
 			name: "not found",
-			setup: func(repo repository.UserMaker) (*uuid.UUID, error) {
+			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
 				randomUUID := uuid.New()
 				return &randomUUID, nil
 			},

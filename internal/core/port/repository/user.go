@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserMaker interface {
+type UserPort interface {
 	Insert(ctx context.Context, user *entity.User) (*uuid.UUID, error)
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, error)

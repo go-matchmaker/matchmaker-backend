@@ -39,11 +39,6 @@ migrate-force:
 db-docs:
 	dbdocs build doc/db.dbml
 
-db-schema:
-	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
-
-
-
 # ==================================================================================== #
 # HELPERS
 # ==================================================================================== #
@@ -139,23 +134,6 @@ run/live:
 		--misc.clean_on_exit "true"
 
 # ==================================================================================== #
-# OPERATIONS
-# ==================================================================================== #
-## push: push changes to the remote Git repository
-.PHONY: push
-push: tidy audit no-dirty
-	git push
-
-## proto: generate protobuf files
-.PHONY: generate-proto
-generate-proto:
-	$(PROTOC) $(PROTOC_OPTS) $(PROTO_DIR)/*.proto
-
-.PHONY: clean-proto
-clean-proto:
-	rm proto/pb/*.pb.go;
-
-# ==================================================================================== #
 # RUN
 # ==================================================================================== #
 ## run: run the applications
@@ -166,6 +144,9 @@ run-http:
 	cd $(HTTP_MAIN_PACKAGE_PATH) && go mod tidy && go mod download && \
     CGO_ENABLED=0 go run github.com/go-matchmaker/matchmaker-server/$(HTTP_MAIN_PACKAGE_PATH)
 
+# ==================================================================================== #
+# Docker
+# ==================================================================================== #
 ## docker-compose: run docker-compose
 docker-compose: docker-compose-stop docker-compose-start
 .PHONY: docker-compose
@@ -183,19 +164,7 @@ docker-compose-stop:
 	ddocker-compose down
 
 # ==================================================================================== #
-# WIRE
-# ==================================================================================== #
-## wire: generate wire
-.PHONY: wire-generate
-wire-generate:
-	cd internal/adapter/app && wire && cd -
-
-.PHONY: wire-clean
-wire-clean:
-	cd internal/adapter/app && rm wire_gen.go && cd -
-
-# ==================================================================================== #
-# SQLC
+# Generated Files
 # ==================================================================================== #
 ## sqlc-generate: generate sqlc
 .PHONY: sqlc-generate
@@ -205,3 +174,21 @@ sqlc-generate:
 .PHONY: sqlc-clean
 sqlc-clean:
 	rm -rf internal/adapter/storage/postgres/sqlc/generated
+
+## wire: generate wire
+.PHONY: wire-generate
+wire-generate:
+	cd internal/adapter/app && wire && cd -
+
+.PHONY: wire-clean
+wire-clean:
+	cd internal/adapter/app && rm wire_gen.go && cd -
+
+## proto: generate protobuf files
+.PHONY: proto-generate
+proto-generate:
+	$(PROTOC) $(PROTOC_OPTS) $(PROTO_DIR)/*.proto
+
+.PHONY: proto-clean
+proto-clean:
+	rm proto/pb/*.pb.go;

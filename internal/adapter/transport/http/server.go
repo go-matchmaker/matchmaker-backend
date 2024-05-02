@@ -26,7 +26,7 @@ type (
 		app             *fiber.App
 		cfgFiber        *fiber.Config
 		responseFactory http.ResponseFactory
-		userService     service.UserMaker
+		userService     service.UserPort
 		tokenService    token.TokenMaker
 	}
 )
@@ -34,7 +34,7 @@ type (
 func NewHTTPServer(
 	ctx context.Context,
 	cfg *config.Container,
-	userService service.UserMaker,
+	userService service.UserPort,
 	tokenService token.TokenMaker,
 ) http.ServerMaker {
 	fiberApp := fiber.New()
@@ -74,9 +74,11 @@ func (s *server) Close(ctx context.Context) error {
 
 func (s *server) SetupRouter() {
 	route := s.app.Group("/api/v1")
+	route.Use()
 	route.Get("/ping", func(c fiber.Ctx) error {
 		return c.SendString("pong")
 	})
 
 	route.Post("/register", s.RegisterUser)
+	route.Delete("/delete/:id", s.DeleteUser)
 }

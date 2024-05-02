@@ -14,17 +14,17 @@ import (
 )
 
 var (
-	_              service.UserMaker = (*UserService)(nil)
-	UserServiceSet                   = wire.NewSet(NewAuthService)
+	_              service.UserPort = (*UserService)(nil)
+	UserServiceSet                  = wire.NewSet(NewAuthService)
 )
 
 type UserService struct {
-	userRepo repository.UserMaker
+	userRepo repository.UserPort
 	cache    cache.EngineMaker
 	token    token.TokenMaker
 }
 
-func NewAuthService(userRepo repository.UserMaker, cache cache.EngineMaker, token token.TokenMaker) service.UserMaker {
+func NewAuthService(userRepo repository.UserPort, cache cache.EngineMaker, token token.TokenMaker) service.UserPort {
 	return &UserService{
 		userRepo,
 		cache,
@@ -56,6 +56,21 @@ func (as *UserService) Register(ctx context.Context, userModel *entity.User) (*u
 	}
 
 	return id, nil
+}
+
+func (as *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	err := as.userRepo.DeleteUser(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	cachingKey := util.GenerateCacheKey("user", id)
+	err = as.cache.Delete(ctx, cachingKey)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //
