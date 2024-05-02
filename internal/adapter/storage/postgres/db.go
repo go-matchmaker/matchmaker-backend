@@ -93,7 +93,7 @@ func (ps *pdb) connect(ctx context.Context, url string) error {
 }
 
 func (ps *pdb) Close(ctx context.Context) error {
-	zap.S().Info("pdb Context is done. Shutting down server...")
+	zap.S().Info("Postgres Context is done. Shutting down server...")
 	ps.pool.Close()
 	return nil
 }
