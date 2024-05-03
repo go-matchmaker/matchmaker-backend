@@ -7,11 +7,18 @@ import (
 
 func (s *server) HTTPMiddleware() error {
 	s.app.Use(
-		cors.New(cors.ConfigDefault),
+		cors.New(s.cors()),
 		s.security,
 	)
 
 	return nil
+}
+
+func (s *server) cors() cors.Config {
+	defaultCors := cors.ConfigDefault
+	defaultCors.AllowCredentials = true
+	defaultCors.AllowOrigins = "*"
+	return defaultCors
 }
 
 func (s *server) security(c fiber.Ctx) error {

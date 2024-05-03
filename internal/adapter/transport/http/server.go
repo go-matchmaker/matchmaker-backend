@@ -73,5 +73,4 @@ func (s *server) SetupRouter() {
 	route := s.app.Group("/api/v1")
 	route.Get("/health", func(c fiber.Ctx) error { return c.SendString("OK") })
 	route.Post("/register", s.RegisterUser)
-	route.Delete("/delete/:id", s.DeleteUser)
 }
