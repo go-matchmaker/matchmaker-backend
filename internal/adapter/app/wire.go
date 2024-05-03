@@ -78,10 +78,10 @@ func httpServerFunc(
 		zap.S().Fatal("failed to start http server:", err)
 	}
 	httpServer.Config()
-	//err = httpServer.HTTPMiddleware()
-	//if err != nil {
-	//	zap.S().Fatal("middleware error:", err)
-	//}
+	err = httpServer.HTTPMiddleware()
+	if err != nil {
+		zap.S().Fatal("middleware error:", err)
+	}
 
 	httpServer.SetupRouter()
 	return httpServer, func() { httpServer.Close(ctx) }, nil

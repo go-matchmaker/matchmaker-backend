@@ -21,13 +21,12 @@ var (
 
 type (
 	server struct {
-		ctx             context.Context
-		cfg             *config.Container
-		app             *fiber.App
-		cfgFiber        *fiber.Config
-		responseFactory http.ResponseFactory
-		userService     service.UserPort
-		tokenService    token.TokenMaker
+		ctx          context.Context
+		cfg          *config.Container
+		app          *fiber.App
+		cfgFiber     *fiber.Config
+		userService  service.UserPort
+		tokenService token.TokenMaker
 	}
 )
 

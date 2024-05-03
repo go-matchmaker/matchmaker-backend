@@ -18,7 +18,7 @@ create-db:
 drop-db:
 	docker exec -it postgres dropdb postgres
 
-migrat-eup:
+migrate-up:
 	migrate -path "$(MIGRATION_FOLDER)" -database "$(DB_URL)" -verbose up
 
 migrate-up1:

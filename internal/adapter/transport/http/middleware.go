@@ -3,31 +3,15 @@ package http
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
-	"go.uber.org/zap"
 )
 
 func (s *server) HTTPMiddleware() error {
-	err := s.app.Use(
-		cors.New(*s.getCorsConfig()),
-		s.responseMiddleware,
+	s.app.Use(
+		cors.New(cors.ConfigDefault),
 		s.security,
 	)
 
-	if err != nil {
-		zap.S().Fatal("middleware setup error: %w", err)
-	}
-
 	return nil
-}
-
-func (s *server) getCorsConfig() *cors.Config {
-	return &cors.Config{
-		AllowCredentials: true,
-	}
-}
-
-func (s *server) responseMiddleware(c fiber.Ctx) {
-	s.responseFactory = NewFiberResponseFactory(c)
 }
 
 func (s *server) security(c fiber.Ctx) error {
