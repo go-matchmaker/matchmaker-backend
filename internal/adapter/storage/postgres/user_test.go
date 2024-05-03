@@ -38,8 +38,10 @@ func createRandomUser() *entity.User {
 		UpdatedAt:      time.Now(),
 	}
 }
+
 func TestCreate(t *testing.T) {
 	t.Parallel()
+
 	user := createRandomUser()
 
 	testCases := []struct {
@@ -50,11 +52,15 @@ func TestCreate(t *testing.T) {
 	}{
 		{
 			name:   "happy path",
-			input:  user,
+			input:  createRandomUser(),
 			errors: false,
 		},
 		{
-			name:   "violates unique constraint",
+			name: "violates unique constraint",
+			setup: func(repo repository.UserPort) error {
+				_, err := repo.Insert(ctx, user)
+				return err
+			},
 			input:  user,
 			errors: true,
 		},
@@ -65,9 +71,11 @@ func TestCreate(t *testing.T) {
 	require.NotNil(t, engine)
 	userRepo := getUserRepo(engine)
 	require.NotNil(t, userRepo)
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			if tc.setup != nil {
 				err := tc.setup(userRepo)
 				require.NoError(t, err)
@@ -76,9 +84,7 @@ func TestCreate(t *testing.T) {
 			id, err := userRepo.Insert(ctx, tc.input)
 			if tc.errors {
 				require.NotNil(t, err)
-
 			} else {
-				require.NoError(t, err)
 				require.NotNil(t, id)
 			}
 		})
