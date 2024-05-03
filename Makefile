@@ -107,11 +107,17 @@ critic:
 test:
 	go test -v -race -buildvcs ./...
 
-## test/cover: run all tests and display coverage
-.PHONY: test/cover
-test/cover:
+## test-cover: run all tests and display coverage
+.PHONY: test-cover
+test-cover:
 	go test -v -race -buildvcs -coverprofile=/tmp/coverage.out ./...
 	go tool cover -html=/tmp/coverage.out
+
+## test-postgres: run all tests with postgres
+.PHONY: test-postgres
+test-postgres:
+	go test ./internal/adapter/storage/postgres/... -v
+
 
 ## build: build the application
 .PHONY: build

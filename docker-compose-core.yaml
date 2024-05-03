@@ -2,28 +2,37 @@ version: "3"
 
 services:
   postgres:
-    image: postgres:14-alpine
+    image: postgres:16.1-alpine3.19
+    container_name: go-matchmaker-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=P@ssw0rd
     healthcheck:
-      test: ["CMD", "pg_isready"]
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -d postgres -U P@ssw0rd"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - common-network
 
   dragonfly:
     image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    container_name: go-matchmaker-dragonfly
     ulimits:
       memlock: -1
     ports:
       - "6379:6379"
     volumes:
-      - dragonflydata:/data
+      - dragonfly:/data
     networks:
       - common-network
 
@@ -32,5 +41,7 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data:
-  dragonflydata:
+  postgres:
+    driver: local
+  dragonfly:
+    driver: local

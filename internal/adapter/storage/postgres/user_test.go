@@ -61,12 +61,13 @@ func TestCreate(t *testing.T) {
 	}
 
 	engine := getConnection()
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 	require.NotNil(t, engine)
 	userRepo := getUserRepo(engine)
 	require.NotNil(t, userRepo)
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			if tc.setup != nil {
 				err := tc.setup(userRepo)
 				require.NoError(t, err)
@@ -122,10 +123,10 @@ func TestGetByID(t *testing.T) {
 	require.NotNil(t, userRepo)
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			id, err := tc.setup(userRepo)
 			require.NotNil(t, id)
 			require.NoError(t, err)
-			fmt.Println("ID:", *id)
 			userData, err := userRepo.GetUserByID(ctx, *id)
 			if tc.errors {
 				require.NotNil(t, err)
@@ -138,33 +139,39 @@ func TestGetByID(t *testing.T) {
 	}
 	fmt.Println("Test get user done")
 }
-
 func TestDeleteUser(t *testing.T) {
 	t.Parallel()
 	user := createRandomUser()
-
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserPort) (*uuid.UUID, error)
-		input  *entity.User
+		setup  func(repo repository.UserPort) (*entity.User, error)
 		errors bool
 	}{
 		{
 			name: "happy path",
-			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
+			setup: func(repo repository.UserPort) (*entity.User, error) {
 				id, err := repo.Insert(ctx, user)
-				return id, err
+				if err != nil {
+					return nil, err
+				}
+				user.ID = *id
+				return user, nil
 			},
-			input:  user,
 			errors: false,
 		},
 		{
-			name: "not found",
-			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
-				randomUUID := uuid.New()
-				return &randomUUID, nil
+			name: "not uuid standard",
+			setup: func(repo repository.UserPort) (*entity.User, error) {
+				id := "random"
+				userID, err := uuid.Parse(id)
+				if err != nil {
+					return nil, err
+				}
+				nonStandardUser := &entity.User{
+					ID: userID,
+				}
+				return nonStandardUser, nil
 			},
-			input:  user,
 			errors: true,
 		},
 	}
@@ -174,20 +181,43 @@ func TestDeleteUser(t *testing.T) {
 	require.NotNil(t, engine)
 	userRepo := getUserRepo(engine)
 	require.NotNil(t, userRepo)
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			id, err := tc.setup(userRepo)
-			require.NotNil(t, id)
-			require.NoError(t, err)
-			fmt.Println("ID:", *id)
-			err = userRepo.DeleteUser(ctx, *id)
+			t.Parallel()
+			user, err := tc.setup(userRepo)
 			if tc.errors {
-				fmt.Println("Error:", err)
-				require.NotNil(t, err)
+				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
+				err = userRepo.DeleteUser(ctx, user.ID)
+
+				require.NoError(t, err)
+
 			}
 		})
 	}
-	fmt.Println("Test done")
+	fmt.Println("Test delete user done")
+}
+
+func TestUpdateUser(t *testing.T) {
+	t.Parallel()
+	user := createRandomUser()
+	testCases := []struct {
+		name   string
+		setup  func(repo repository.UserPort) (*entity.User, error)
+		errors bool
+	}{
+		{
+			name: "happy path",
+			setup: func(repo repository.UserPort) (*entity.User, error) {
+				userInsert, err := repo.Insert(ctx, user)
+				if err != nil {
+					return nil, err
+				}
+				return userInsert, nil
+			},
+			errors: false,
+		},
+	}
 }

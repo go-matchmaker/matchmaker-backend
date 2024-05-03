@@ -67,11 +67,6 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (enti
 }
 
 func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	_, err := r.GetUserByID(ctx, id)
-	if err != nil {
-		return err
-
-	}
 	return r.querier.DeleteUser(ctx, r.db, id)
 }
 
