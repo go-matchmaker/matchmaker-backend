@@ -2,7 +2,6 @@ package dragonfly
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/cache"
 	"github.com/google/wire"
@@ -30,7 +29,7 @@ func NewDragonflyCache(cfg *config.Container) cache.EngineMaker {
 }
 
 func (d *dragonfly) Start(ctx context.Context) error {
-	address := fmt.Sprintf("%s:%d", d.cfg.Dragonfly.Host, d.cfg.Dragonfly.Port)
+	address := d.cfg.Dragonfly.URL
 	dbNumber := d.cfg.Dragonfly.DBNumber
 
 	var pingErr error

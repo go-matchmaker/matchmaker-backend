@@ -3,6 +3,7 @@ package psql
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"go.uber.org/zap"
 	"time"
@@ -45,6 +46,7 @@ func (ps *pdb) Migration() error {
 
 func (ps *pdb) migrationSettings() error {
 	connURL := ps.getURL()
+	fmt.Println("URL:", connURL)
 	source, err := iofs.New(migrationsFS, _migrationFilePath)
 	if err != nil {
 		return err

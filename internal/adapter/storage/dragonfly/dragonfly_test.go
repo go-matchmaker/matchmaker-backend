@@ -46,13 +46,13 @@ func setup(url string) *config.Container {
 	endpoint := strings.Split(url, ":")
 	host := endpoint[0]
 	port, err := strconv.Atoi(endpoint[1])
+	address := fmt.Sprintf("%s:%d", host, port)
 	if err != nil {
 		log.Fatal("failed to convert port to int: ", err)
 	}
 	return &config.Container{
 		Dragonfly: &config.Dragonfly{
-			Host: host,
-			Port: port,
+			URL: address,
 		},
 	}
 }

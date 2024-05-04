@@ -38,7 +38,7 @@ func NewDB(cfg *config.Container) db.EngineMaker {
 
 func (ps *pdb) Start(ctx context.Context) error {
 	url := ps.getURL()
-
+	fmt.Println("STARTURL:", url)
 	go func() {
 		err := ps.connect(ctx, url)
 		if err != nil {
@@ -51,13 +51,8 @@ func (ps *pdb) Start(ctx context.Context) error {
 }
 
 func (ps *pdb) getURL() string {
-	url := fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable",
-		ps.cfg.PSQL.Conn,
-		ps.cfg.PSQL.User,
-		ps.cfg.PSQL.Password,
-		ps.cfg.PSQL.Host,
-		ps.cfg.PSQL.Port,
-		ps.cfg.PSQL.Name,
+	url := fmt.Sprintf("%s?sslmode=disable",
+		ps.cfg.PSQL.URL,
 	)
 	return url
 }

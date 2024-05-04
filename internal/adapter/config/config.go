@@ -34,9 +34,8 @@ type (
 	}
 
 	Dragonfly struct {
-		Host     string `env-required:"true" yaml:"host" env:"REDIS_HOST"`
-		Port     int    `env-required:"true" yaml:"port" env:"REDIS_PORT"`
-		DBNumber int    `env-required:"true" yaml:"db_number" env:"REDIS_DB_NUMBER"`
+		URL      string `env-required:"true" yaml:"url" env:"DRAGONFLY_URL"`
+		DBNumber int    `env-required:"true" yaml:"db_number" env:"DRAGONFLY_DB_NUMBER"`
 	}
 
 	HTTP struct {
@@ -45,12 +44,8 @@ type (
 	}
 
 	PSQL struct {
-		Conn     string `env-required:"true" yaml:"conn" env:"DB_CONN"`
-		Host     string `env-required:"true" yaml:"host" env:"DB_HOST"`
-		Port     int    `env-required:"true" yaml:"port" env:"DB_PORT"`
-		User     string `env-required:"true" yaml:"user" env:"DB_USER"`
-		Password string `env-required:"true" yaml:"password" env:"DB_PASSWORD"`
-		Name     string `env-required:"true" yaml:"name" env:"DB_NAME"`
+		URL     string `env-required:"true" yaml:"url" env:"PSQL_URL"`
+		PoolMax int    `env-required:"true" yaml:"pool_max" env:"PSQL_POOL_MAX"`
 	}
 
 	Settings struct {

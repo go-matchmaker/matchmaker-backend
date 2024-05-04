@@ -65,12 +65,7 @@ func setup(url string) *config.Container {
 	}
 	return &config.Container{
 		PSQL: &config.PSQL{
-			Conn:     "postgresql",
-			Host:     host,
-			Port:     port,
-			User:     "testuser",
-			Password: "testpassword",
-			Name:     "testdb",
+			URL: fmt.Sprintf("postgres://%s:%s@%s:%d/testdb?sslmode=disable", "testuser", "testpassword", host, port),
 		},
 		Settings: &config.Settings{
 			PSQLConnTimeout:  5,
