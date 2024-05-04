@@ -15,7 +15,7 @@ import (
 
 var (
 	_              service.UserPort = (*UserService)(nil)
-	UserServiceSet                  = wire.NewSet(NewAuthService)
+	UserServiceSet                  = wire.NewSet(NewUserService)
 )
 
 type UserService struct {
@@ -24,7 +24,7 @@ type UserService struct {
 	token    token.TokenMaker
 }
 
-func NewAuthService(userRepo repository.UserPort, cache cache.EngineMaker, token token.TokenMaker) service.UserPort {
+func NewUserService(userRepo repository.UserPort, cache cache.EngineMaker, token token.TokenMaker) service.UserPort {
 	return &UserService{
 		userRepo,
 		cache,
@@ -58,48 +58,10 @@ func (as *UserService) Register(ctx context.Context, userModel *entity.User) (*u
 	return id, nil
 }
 
-func (as *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	err := as.userRepo.DeleteUser(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	cachingKey := util.GenerateCacheKey("user", id)
-	err = as.cache.Delete(ctx, cachingKey)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
+//func (as *UserService) Login(ctx context.Context, email, password string) (string, error) {
+//	user, err := as.userRepo.GetByEmail(ctx, email)
+//	if err != nil {
+//		return "", err
+//	}
 //
-// func (as *AuthService) Login(ctx context.Context, email, password string) (string, error) {
-// 	user, err := as.userRepo.GetUserByEmail(ctx, email)
-// 	if err != nil {
-// 		return "", &entity.Error{
-// 			Code:    entity.InvalidCredentials,
-// 			Message: "Invalid credentials",
-// 			Data:    email,
-// 		}
-// 	}
-//
-// 	passErr := util.ComparePassword(password, user.Password)
-// 	if passErr != nil {
-// 		return "", &entity.Error{
-// 			Code:    entity.InvalidCredentials,
-// 			Message: "Invalid credentials",
-// 			Data:    user.Password,
-// 		}
-// 	}
-//
-// 	token, err := as.token.CreateToken(user)
-// 	if err != nil {
-// 		return "", &entity.Error{
-// 			Code:    entity.TokenCreation,
-// 			Message: "Token creation failed",
-// 		}
-// 	}
-//
-// 	return token, nil
-// }
+//}

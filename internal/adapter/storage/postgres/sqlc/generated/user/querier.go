@@ -11,12 +11,12 @@ import (
 )
 
 type Querier interface {
-	DeleteAllUsers(ctx context.Context, db DBTX) error
-	DeleteUser(ctx context.Context, db DBTX, id uuid.UUID) error
-	GetUser(ctx context.Context, db DBTX, id uuid.UUID) (*Users, error)
-	GetUserByEmail(ctx context.Context, db DBTX, email string) (*Users, error)
-	InsertUser(ctx context.Context, db DBTX, arg *InsertUserParams) (*Users, error)
-	UpdateUser(ctx context.Context, db DBTX, arg *UpdateUserParams) (*Users, error)
+	DeleteAll(ctx context.Context, db DBTX) error
+	DeleteOne(ctx context.Context, db DBTX, id uuid.UUID) error
+	GetByEmail(ctx context.Context, db DBTX, email string) (*Users, error)
+	GetByID(ctx context.Context, db DBTX, id uuid.UUID) (*Users, error)
+	Insert(ctx context.Context, db DBTX, arg *InsertParams) (*Users, error)
+	Update(ctx context.Context, db DBTX, arg *UpdateParams) (*Users, error)
 }
 
 var _ Querier = (*Queries)(nil)

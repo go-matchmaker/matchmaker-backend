@@ -44,7 +44,7 @@ func RandomEmail() string {
 
 func RandomPhoneNumber() string {
 	number := strconv.Itoa(int(RandomInt(1000000000, 9999999999)))
-	return fmt.Sprintf("%s", number)
+	return number
 }
 
 func RandomWebSite() string {

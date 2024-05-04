@@ -26,23 +26,23 @@ type App struct {
 
 func New(
 	rw *sync.RWMutex,
-	Cfg *config.Container,
-	HTTP http.ServerMaker,
-	Token token.TokenMaker,
-	PG db.EngineMaker,
-	Dragonfly cache.EngineMaker,
-	UserRepo repository.UserPort,
-	UserService service.UserPort,
+	cfg *config.Container,
+	http http.ServerMaker,
+	token token.TokenMaker,
+	pg db.EngineMaker,
+	dragonfly cache.EngineMaker,
+	userRepo repository.UserPort,
+	userService service.UserPort,
 ) *App {
 	return &App{
 		rw:          rw,
-		Cfg:         Cfg,
-		HTTP:        HTTP,
-		Token:       Token,
-		PG:          PG,
-		Dragonfly:   Dragonfly,
-		UserRepo:    UserRepo,
-		UserService: UserService,
+		Cfg:         cfg,
+		HTTP:        http,
+		Token:       token,
+		PG:          pg,
+		Dragonfly:   dragonfly,
+		UserRepo:    userRepo,
+		UserService: userService,
 	}
 }
 

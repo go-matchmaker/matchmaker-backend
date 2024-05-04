@@ -118,6 +118,10 @@ test-cover:
 test-postgres:
 	go test ./internal/adapter/storage/postgres/... -v
 
+## test-dragonfly: run all tests with dragonfly
+.PHONY: test-dragonfly
+test-dragonfly:
+	go test ./internal/adapter/storage/dragonfly/... -v
 
 ## build: build the application
 .PHONY: build

@@ -13,57 +13,32 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const DeleteAllUsers = `-- name: DeleteAllUsers :exec
+const DeleteAll = `-- name: DeleteAll :exec
 DELETE FROM users
 `
 
-func (q *Queries) DeleteAllUsers(ctx context.Context, db DBTX) error {
-	_, err := db.Exec(ctx, DeleteAllUsers)
+func (q *Queries) DeleteAll(ctx context.Context, db DBTX) error {
+	_, err := db.Exec(ctx, DeleteAll)
 	return err
 }
 
-const DeleteUser = `-- name: DeleteUser :exec
+const DeleteOne = `-- name: DeleteOne :exec
 DELETE FROM users
 WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, db DBTX, id uuid.UUID) error {
-	_, err := db.Exec(ctx, DeleteUser, id)
+func (q *Queries) DeleteOne(ctx context.Context, db DBTX, id uuid.UUID) error {
+	_, err := db.Exec(ctx, DeleteOne, id)
 	return err
 }
 
-const GetUser = `-- name: GetUser :one
-SELECT id, user_role, name, surname, email, phone_number, company_name, company_type, company_website, password_hash, created_at, updated_at FROM users
-WHERE id = $1 LIMIT 1
-`
-
-func (q *Queries) GetUser(ctx context.Context, db DBTX, id uuid.UUID) (*Users, error) {
-	row := db.QueryRow(ctx, GetUser, id)
-	var i Users
-	err := row.Scan(
-		&i.ID,
-		&i.UserRole,
-		&i.Name,
-		&i.Surname,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.CompanyName,
-		&i.CompanyType,
-		&i.CompanyWebsite,
-		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return &i, err
-}
-
-const GetUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, user_role, name, surname, email, phone_number, company_name, company_type, company_website, password_hash, created_at, updated_at FROM users
+const GetByEmail = `-- name: GetByEmail :one
+SELECT id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, db DBTX, email string) (*Users, error) {
-	row := db.QueryRow(ctx, GetUserByEmail, email)
+func (q *Queries) GetByEmail(ctx context.Context, db DBTX, email string) (*Users, error) {
+	row := db.QueryRow(ctx, GetByEmail, email)
 	var i Users
 	err := row.Scan(
 		&i.ID,
@@ -72,9 +47,6 @@ func (q *Queries) GetUserByEmail(ctx context.Context, db DBTX, email string) (*U
 		&i.Surname,
 		&i.Email,
 		&i.PhoneNumber,
-		&i.CompanyName,
-		&i.CompanyType,
-		&i.CompanyWebsite,
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -82,7 +54,29 @@ func (q *Queries) GetUserByEmail(ctx context.Context, db DBTX, email string) (*U
 	return &i, err
 }
 
-const InsertUser = `-- name: InsertUser :one
+const GetByID = `-- name: GetByID :one
+SELECT id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at FROM users
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetByID(ctx context.Context, db DBTX, id uuid.UUID) (*Users, error) {
+	row := db.QueryRow(ctx, GetByID, id)
+	var i Users
+	err := row.Scan(
+		&i.ID,
+		&i.UserRole,
+		&i.Name,
+		&i.Surname,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
+const Insert = `-- name: Insert :one
 INSERT INTO users (
     id,
     user_role,
@@ -90,42 +84,33 @@ INSERT INTO users (
     surname,
     email,
     phone_number,
-    company_name,
-    company_type,
-    company_website,
     password_hash,
     created_at,
     updated_at
- ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-) RETURNING id, user_role, name, surname, email, phone_number, company_name, company_type, company_website, password_hash, created_at, updated_at
+ ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9
+) RETURNING id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at
 `
 
-type InsertUserParams struct {
-	ID             uuid.UUID `json:"id"`
-	UserRole       UserRole  `json:"user_role"`
-	Name           string    `json:"name"`
-	Surname        string    `json:"surname"`
-	Email          string    `json:"email"`
-	PhoneNumber    string    `json:"phone_number"`
-	CompanyName    string    `json:"company_name"`
-	CompanyType    string    `json:"company_type"`
-	CompanyWebsite string    `json:"company_website"`
-	PasswordHash   string    `json:"password_hash"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+type InsertParams struct {
+	ID           uuid.UUID `json:"id"`
+	UserRole     UserRole  `json:"user_role"`
+	Name         string    `json:"name"`
+	Surname      string    `json:"surname"`
+	Email        string    `json:"email"`
+	PhoneNumber  string    `json:"phone_number"`
+	PasswordHash string    `json:"password_hash"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-func (q *Queries) InsertUser(ctx context.Context, db DBTX, arg *InsertUserParams) (*Users, error) {
-	row := db.QueryRow(ctx, InsertUser,
+func (q *Queries) Insert(ctx context.Context, db DBTX, arg *InsertParams) (*Users, error) {
+	row := db.QueryRow(ctx, Insert,
 		arg.ID,
 		arg.UserRole,
 		arg.Name,
 		arg.Surname,
 		arg.Email,
 		arg.PhoneNumber,
-		arg.CompanyName,
-		arg.CompanyType,
-		arg.CompanyWebsite,
 		arg.PasswordHash,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -138,9 +123,6 @@ func (q *Queries) InsertUser(ctx context.Context, db DBTX, arg *InsertUserParams
 		&i.Surname,
 		&i.Email,
 		&i.PhoneNumber,
-		&i.CompanyName,
-		&i.CompanyType,
-		&i.CompanyWebsite,
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -148,45 +130,36 @@ func (q *Queries) InsertUser(ctx context.Context, db DBTX, arg *InsertUserParams
 	return &i, err
 }
 
-const UpdateUser = `-- name: UpdateUser :one
+const Update = `-- name: Update :one
 UPDATE users
 SET
     name = COALESCE($1, name),
     surname = COALESCE($2, surname),
     email = COALESCE($3, email),
     phone_number = COALESCE($4, phone_number),
-    company_name = COALESCE($5, company_name),
-    company_type = COALESCE($6, company_type),
-    company_website = COALESCE($7, company_website),
-    password_hash = COALESCE($8, password_hash),
-    updated_at = COALESCE($9, updated_at)
+    password_hash = COALESCE($5, password_hash),
+    updated_at = COALESCE($6, updated_at)
 WHERE
-id = $10
-RETURNING id, user_role, name, surname, email, phone_number, company_name, company_type, company_website, password_hash, created_at, updated_at
+id = $7
+RETURNING id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at
 `
 
-type UpdateUserParams struct {
-	Name           pgtype.Text        `json:"name"`
-	Surname        pgtype.Text        `json:"surname"`
-	Email          pgtype.Text        `json:"email"`
-	PhoneNumber    pgtype.Text        `json:"phone_number"`
-	CompanyName    pgtype.Text        `json:"company_name"`
-	CompanyType    pgtype.Text        `json:"company_type"`
-	CompanyWebsite pgtype.Text        `json:"company_website"`
-	PasswordHash   pgtype.Text        `json:"password_hash"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	ID             uuid.UUID          `json:"id"`
+type UpdateParams struct {
+	Name         pgtype.Text        `json:"name"`
+	Surname      pgtype.Text        `json:"surname"`
+	Email        pgtype.Text        `json:"email"`
+	PhoneNumber  pgtype.Text        `json:"phone_number"`
+	PasswordHash pgtype.Text        `json:"password_hash"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	ID           uuid.UUID          `json:"id"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, db DBTX, arg *UpdateUserParams) (*Users, error) {
-	row := db.QueryRow(ctx, UpdateUser,
+func (q *Queries) Update(ctx context.Context, db DBTX, arg *UpdateParams) (*Users, error) {
+	row := db.QueryRow(ctx, Update,
 		arg.Name,
 		arg.Surname,
 		arg.Email,
 		arg.PhoneNumber,
-		arg.CompanyName,
-		arg.CompanyType,
-		arg.CompanyWebsite,
 		arg.PasswordHash,
 		arg.UpdatedAt,
 		arg.ID,
@@ -199,9 +172,6 @@ func (q *Queries) UpdateUser(ctx context.Context, db DBTX, arg *UpdateUserParams
 		&i.Surname,
 		&i.Email,
 		&i.PhoneNumber,
-		&i.CompanyName,
-		&i.CompanyType,
-		&i.CompanyWebsite,
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,

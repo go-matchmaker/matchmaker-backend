@@ -9,8 +9,8 @@ import (
 type UserPort interface {
 	Insert(ctx context.Context, user *entity.User) (*uuid.UUID, error)
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
-	GetUserByID(ctx context.Context, id uuid.UUID) (entity.User, error)
-	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
-	DeleteUser(ctx context.Context, id uuid.UUID) error
-	DeleteAllUsers(ctx context.Context) error
+	GetByID(ctx context.Context, id uuid.UUID) (entity.User, error)
+	GetByEmail(ctx context.Context, email string) (entity.User, error)
+	DeleteOne(ctx context.Context, id uuid.UUID) error
+	DeleteAll(ctx context.Context) error
 }

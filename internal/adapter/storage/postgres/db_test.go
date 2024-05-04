@@ -20,8 +20,6 @@ import (
 	"time"
 )
 
-const ()
-
 var (
 	sleepTime = 2 * time.Second
 	url       = ""

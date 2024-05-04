@@ -23,9 +23,9 @@ type PasetoToken struct {
 	TTL          time.Duration
 }
 
-func NewPaseto(config *config.Container) (token.TokenMaker, error) {
-	symmetricKey := config.Token.SymmetricKey
-	durationStr := config.Token.TTL
+func NewPaseto(cfg *config.Container) (token.TokenMaker, error) {
+	symmetricKey := cfg.Token.SymmetricKey
+	durationStr := cfg.Token.TTL
 
 	validSymmetricKey := len(symmetricKey) == chacha20poly1305.KeySize
 	if !validSymmetricKey {
@@ -44,7 +44,7 @@ func NewPaseto(config *config.Container) (token.TokenMaker, error) {
 	}, nil
 }
 
-func (pt *PasetoToken) CreateToken(email string, role string) (string, *valueobject.TokenPayload, error) {
+func (pt *PasetoToken) CreateToken(email, role string) (string, *valueobject.TokenPayload, error) {
 	payload := valueobject.TokenPayload{
 		Email:     email,
 		Role:      role,
@@ -62,10 +62,10 @@ func (pt *PasetoToken) CreateToken(email string, role string) (string, *valueobj
 
 }
 
-func (pt *PasetoToken) VerifyToken(token string) (*valueobject.TokenPayload, error) {
+func (pt *PasetoToken) VerifyToken(pasetoToken string) (*valueobject.TokenPayload, error) {
 	var payload valueobject.TokenPayload
 
-	err := pt.paseto.Decrypt(token, pt.symmetricKey, &payload, nil)
+	err := pt.paseto.Decrypt(pasetoToken, pt.symmetricKey, &payload, nil)
 	if err != nil {
 		return nil, err
 	}

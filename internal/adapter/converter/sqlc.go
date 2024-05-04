@@ -7,42 +7,37 @@ import (
 	"time"
 )
 
-func ArgToUserModel(user *user.Users) *entity.User {
+func ArgToUserModel(userParam *user.Users) *entity.User {
 	return &entity.User{
-		ID:             user.ID,
-		UserRole:       entity.UserRole(user.UserRole),
-		Name:           user.Name,
-		Surname:        user.Surname,
-		Email:          user.Email,
-		PhoneNumber:    user.PhoneNumber,
-		CompanyName:    user.CompanyName,
-		CompanyType:    user.CompanyType,
-		CompanyWebSite: user.CompanyWebsite,
-		PasswordHash:   user.PasswordHash,
-		CreatedAt:      user.CreatedAt,
-		UpdatedAt:      user.UpdatedAt,
+		ID:           userParam.ID,
+		UserRole:     entity.UserRole(userParam.UserRole),
+		Name:         userParam.Name,
+		Surname:      userParam.Surname,
+		Email:        userParam.Email,
+		PhoneNumber:  userParam.PhoneNumber,
+		PasswordHash: userParam.PasswordHash,
+		CreatedAt:    userParam.CreatedAt,
+		UpdatedAt:    userParam.UpdatedAt,
 	}
 }
 
 func UserModelToArg(userModel *entity.User) *user.Users {
 	return &user.Users{
-		ID:             userModel.ID,
-		UserRole:       user.UserRole(userModel.UserRole),
-		Name:           userModel.Name,
-		Surname:        userModel.Surname,
-		Email:          userModel.Email,
-		PhoneNumber:    userModel.PhoneNumber,
-		CompanyName:    userModel.CompanyName,
-		CompanyType:    userModel.CompanyType,
-		CompanyWebsite: userModel.CompanyWebSite,
-		PasswordHash:   userModel.PasswordHash,
-		CreatedAt:      userModel.CreatedAt,
-		UpdatedAt:      userModel.UpdatedAt,
+		ID:           userModel.ID,
+		UserRole:     user.UserRole(userModel.UserRole),
+		Name:         userModel.Name,
+		Surname:      userModel.Surname,
+		Email:        userModel.Email,
+		PhoneNumber:  userModel.PhoneNumber,
+		PasswordHash: userModel.PasswordHash,
+		CreatedAt:    userModel.CreatedAt,
+		UpdatedAt:    userModel.UpdatedAt,
 	}
 }
 
-func UserModelToUpdateArg(userModel *entity.User) *user.UpdateUserParams {
-	changedUserParams := &user.UpdateUserParams{
+func UserModelToUpdateArg(userModel *entity.User) *user.UpdateParams {
+	changedUserParams := &user.UpdateParams{
+		ID:        userModel.ID,
 		UpdatedAt: pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}
 
@@ -55,12 +50,6 @@ func UserModelToUpdateArg(userModel *entity.User) *user.UpdateUserParams {
 				changedUserParams.Email = pgtype.Text{String: value.(string), Valid: true}
 			case "PhoneNumber":
 				changedUserParams.PhoneNumber = pgtype.Text{String: value.(string), Valid: true}
-			case "CompanyName":
-				changedUserParams.CompanyName = pgtype.Text{String: value.(string), Valid: true}
-			case "CompanyType":
-				changedUserParams.CompanyType = pgtype.Text{String: value.(string), Valid: true}
-			case "CompanyWebSite":
-				changedUserParams.CompanyWebsite = pgtype.Text{String: value.(string), Valid: true}
 			case "PasswordHash":
 				changedUserParams.PasswordHash = pgtype.Text{String: value.(string), Valid: true}
 			case "Surname":
@@ -72,9 +61,6 @@ func UserModelToUpdateArg(userModel *entity.User) *user.UpdateUserParams {
 	setIfNotEmpty("Name", userModel.Name)
 	setIfNotEmpty("Email", userModel.Email)
 	setIfNotEmpty("PhoneNumber", userModel.PhoneNumber)
-	setIfNotEmpty("CompanyName", userModel.CompanyName)
-	setIfNotEmpty("CompanyType", userModel.CompanyType)
-	setIfNotEmpty("CompanyWebSite", userModel.CompanyWebSite)
 	setIfNotEmpty("PasswordHash", userModel.PasswordHash)
 	setIfNotEmpty("Surname", userModel.Surname)
 

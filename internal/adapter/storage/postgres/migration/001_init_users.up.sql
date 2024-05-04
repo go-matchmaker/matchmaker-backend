@@ -13,9 +13,6 @@ CREATE TABLE users (
     surname         TEXT NOT NULL,
     email           TEXT NOT NULL UNIQUE,
     phone_number    TEXT NOT NULL UNIQUE,
-    company_name    TEXT NOT NULL,
-    company_type    TEXT NOT NULL,
-    company_website TEXT NOT NULL,
     password_hash   TEXT NOT NULL,
     created_at      timestamptz NOT NULL DEFAULT (now()),
     updated_at      timestamptz NOT NULL DEFAULT (now())

@@ -7,7 +7,6 @@ import (
 	"context"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/auth/paseto"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
-	adapter_service "github.com/go-matchmaker/matchmaker-server/internal/adapter/service"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/dragonfly"
 	psql "github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres"
 	adapter_http "github.com/go-matchmaker/matchmaker-server/internal/adapter/transport/http"
@@ -16,6 +15,7 @@ import (
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/http"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/service"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/token"
+	port_service "github.com/go-matchmaker/matchmaker-server/internal/core/service"
 	"github.com/google/wire"
 	"go.uber.org/zap"
 	"sync"
@@ -32,7 +32,7 @@ func InitApp(
 		dbEngineFunc,
 		dragonflyEngineFunc,
 		psql.UserRepositorySet,
-		adapter_service.UserServiceSet,
+		port_service.UserServiceSet,
 		paseto.PasetoSet,
 		httpServerFunc,
 	))

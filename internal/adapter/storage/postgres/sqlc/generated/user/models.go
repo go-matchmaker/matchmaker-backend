@@ -55,16 +55,13 @@ func (ns NullUserRole) Value() (driver.Value, error) {
 }
 
 type Users struct {
-	ID             uuid.UUID `json:"id"`
-	UserRole       UserRole  `json:"user_role"`
-	Name           string    `json:"name"`
-	Surname        string    `json:"surname"`
-	Email          string    `json:"email"`
-	PhoneNumber    string    `json:"phone_number"`
-	CompanyName    string    `json:"company_name"`
-	CompanyType    string    `json:"company_type"`
-	CompanyWebsite string    `json:"company_website"`
-	PasswordHash   string    `json:"password_hash"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID           uuid.UUID `json:"id"`
+	UserRole     UserRole  `json:"user_role"`
+	Name         string    `json:"name"`
+	Surname      string    `json:"surname"`
+	Email        string    `json:"email"`
+	PhoneNumber  string    `json:"phone_number"`
+	PasswordHash string    `json:"password_hash"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }

@@ -27,16 +27,13 @@ var CompanyTypes = map[int]string{
 }
 
 type User struct {
-	ID             uuid.UUID
-	UserRole       UserRole
-	Name           string
-	Surname        string
-	Email          string
-	PhoneNumber    string
-	CompanyName    string
-	CompanyType    string
-	CompanyWebSite string
-	PasswordHash   string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID           uuid.UUID
+	UserRole     UserRole
+	Name         string
+	Surname      string
+	Email        string
+	PhoneNumber  string
+	PasswordHash string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }

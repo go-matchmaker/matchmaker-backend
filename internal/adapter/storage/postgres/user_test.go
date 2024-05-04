@@ -25,17 +25,14 @@ func createRandomUser() *entity.User {
 	}
 
 	return &entity.User{
-		UserRole:       "customer",
-		Name:           util.RandomOwner(),
-		Surname:        util.RandomOwner(),
-		Email:          util.RandomEmail(),
-		PhoneNumber:    util.RandomPhoneNumber(),
-		CompanyName:    util.RandomOwner(),
-		CompanyType:    "Type A",
-		CompanyWebSite: util.RandomWebSite(),
-		PasswordHash:   pass,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		UserRole:     "customer",
+		Name:         util.RandomOwner(),
+		Surname:      util.RandomOwner(),
+		Email:        util.RandomEmail(),
+		PhoneNumber:  util.RandomPhoneNumber(),
+		PasswordHash: pass,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 }
 
@@ -133,7 +130,7 @@ func TestGetByID(t *testing.T) {
 			id, err := tc.setup(userRepo)
 			require.NotNil(t, id)
 			require.NoError(t, err)
-			userData, err := userRepo.GetUserByID(ctx, *id)
+			userData, err := userRepo.GetByID(ctx, *id)
 			if tc.errors {
 				require.NotNil(t, err)
 				require.Error(t, err)
@@ -145,7 +142,7 @@ func TestGetByID(t *testing.T) {
 	}
 	fmt.Println("Test get user done")
 }
-func TestDeleteUser(t *testing.T) {
+func TestDeleteOne(t *testing.T) {
 	t.Parallel()
 	user := createRandomUser()
 	testCases := []struct {
@@ -196,7 +193,7 @@ func TestDeleteUser(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				err = userRepo.DeleteUser(ctx, user.ID)
+				err = userRepo.DeleteOne(ctx, user.ID)
 
 				require.NoError(t, err)
 
@@ -217,13 +214,50 @@ func TestUpdateUser(t *testing.T) {
 		{
 			name: "happy path",
 			setup: func(repo repository.UserPort) (*entity.User, error) {
-				userInsert, err := repo.Insert(ctx, user)
+				userID, err := repo.Insert(ctx, user)
 				if err != nil {
 					return nil, err
 				}
-				return userInsert, nil
+				user.ID = *userID
+				return user, nil
 			},
 			errors: false,
 		},
+		{
+			name: "not found",
+			setup: func(repo repository.UserPort) (*entity.User, error) {
+				id, err := uuid.NewV7()
+				if err != nil {
+					return nil, err
+				}
+				user.ID = id
+				return user, nil
+			},
+			errors: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			engine := getConnection()
+			time.Sleep(2 * time.Second)
+			require.NotNil(t, engine)
+			userRepo := getUserRepo(engine)
+			require.NotNil(t, userRepo)
+			createdUser, err := tc.setup(userRepo)
+			require.NoError(t, err)
+			createdUser.Name = "RandomName"
+			createdUser.Surname = "RandomSurname"
+			createdUser.PhoneNumber = "1234567890"
+			createdUser.PasswordHash = "randompassword"
+			createdUser.UpdatedAt = time.Now()
+			newUser, errUpdate := userRepo.Update(ctx, user)
+			if tc.errors {
+				require.Error(t, errUpdate)
+			} else {
+				require.NoError(t, errUpdate)
+				require.NotNil(t, newUser)
+			}
+		})
 	}
 }
