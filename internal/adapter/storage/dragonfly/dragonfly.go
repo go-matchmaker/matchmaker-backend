@@ -4,15 +4,13 @@ import (
 	"context"
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/cache"
-	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"time"
 )
 
 var (
-	_            cache.EngineMaker = (*dragonfly)(nil)
-	dragonflySet                   = wire.NewSet(NewDragonflyCache)
+	_ cache.EngineMaker = (*dragonfly)(nil)
 )
 
 type dragonfly struct {
@@ -33,18 +31,16 @@ func (d *dragonfly) Start(ctx context.Context) error {
 	dbNumber := d.cfg.Dragonfly.DBNumber
 
 	var pingErr error
-	go func() {
-		d.client = redis.NewClient(&redis.Options{
-			Addr: address,
-			DB:   dbNumber,
-		})
-		zap.S().Info("Connecting to Dragonfly...")
-		_, pingErr = d.client.Ping(ctx).Result()
-		zap.S().Info("DragonFly Pong! 🐉")
-		if pingErr != nil {
-			zap.S().Fatal("Dragonfly ping failed", pingErr)
-		}
-	}()
+	d.client = redis.NewClient(&redis.Options{
+		Addr: address,
+		DB:   dbNumber,
+	})
+	zap.S().Info("Connecting to Dragonfly...")
+	_, pingErr = d.client.Ping(ctx).Result()
+	zap.S().Info("DragonFly Pong! 🐉")
+	if pingErr != nil {
+		zap.S().Fatal("Dragonfly ping failed", pingErr)
+	}
 
 	return nil
 }

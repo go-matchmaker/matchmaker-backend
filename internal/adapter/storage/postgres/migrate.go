@@ -46,7 +46,7 @@ func (ps *pdb) Migration() error {
 
 func (ps *pdb) migrationSettings() error {
 	connURL := ps.getURL()
-	fmt.Println("URL:", connURL)
+	fmt.Println("MIGRATE URL: ", connURL)
 	source, err := iofs.New(migrationsFS, _migrationFilePath)
 	if err != nil {
 		return err

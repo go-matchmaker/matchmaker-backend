@@ -33,11 +33,6 @@ type (
 		TTL          string `env-required:"true" yaml:"ttl" env:"TOKEN_TTL"`
 	}
 
-	Dragonfly struct {
-		URL      string `env-required:"true" yaml:"url" env:"DRAGONFLY_URL"`
-		DBNumber int    `env-required:"true" yaml:"db_number" env:"DRAGONFLY_DB_NUMBER"`
-	}
-
 	HTTP struct {
 		Host string `env-required:"true" yaml:"host" env:"HTTP_HOST"`
 		Port int    `env-required:"true" yaml:"port" env:"HTTP_PORT"`
@@ -46,6 +41,11 @@ type (
 	PSQL struct {
 		URL     string `env-required:"true" yaml:"url" env:"PSQL_URL"`
 		PoolMax int    `env-required:"true" yaml:"pool_max" env:"PSQL_POOL_MAX"`
+	}
+
+	Dragonfly struct {
+		URL      string `env-required:"true" yaml:"url" env:"DRAGONFLY_URL"`
+		DBNumber int    `env-required:"true" yaml:"db_number" env:"DRAGONFLY_DB_NUMBER"`
 	}
 
 	Settings struct {

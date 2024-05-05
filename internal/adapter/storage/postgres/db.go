@@ -7,15 +7,13 @@ import (
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/config"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 	"time"
 )
 
 var (
-	_      db.EngineMaker = (*pdb)(nil)
-	pdbSet                = wire.NewSet(NewDB)
+	_ db.EngineMaker = (*pdb)(nil)
 )
 
 type (
@@ -39,12 +37,10 @@ func NewDB(cfg *config.Container) db.EngineMaker {
 func (ps *pdb) Start(ctx context.Context) error {
 	url := ps.getURL()
 	fmt.Println("STARTURL:", url)
-	go func() {
-		err := ps.connect(ctx, url)
-		if err != nil {
-			zap.S().Fatal("Postgres connection failed", err)
-		}
-	}()
+	err := ps.connect(ctx, url)
+	if err != nil {
+		zap.S().Fatal("Postgres connection failed", err)
+	}
 
 	zap.S().Info("Connected to Postgres 🎉")
 	return nil
@@ -56,7 +52,6 @@ func (ps *pdb) getURL() string {
 	)
 	return url
 }
-
 func (ps *pdb) ping(ctx context.Context) error {
 	if ps.pool != nil {
 		if err := ps.pool.Ping(ctx); err != nil {
@@ -84,7 +79,8 @@ func (ps *pdb) connect(ctx context.Context, url string) error {
 		zap.S().Warnf("Postgres connection failed, attempts left: %d", ps.cfg.Settings.PSQLConnAttempts)
 		time.Sleep(time.Duration(ps.cfg.Settings.PSQLConnTimeout) * time.Second)
 	}
-	return lastErr
+
+	panic("Postgres connection failed")
 }
 
 func (ps *pdb) Close(ctx context.Context) error {

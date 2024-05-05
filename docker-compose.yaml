@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.8"
 
 services:
   postgres:
@@ -32,10 +32,11 @@ services:
       context: .
       dockerfile: Dockerfile
     image: go-matcher
-    restart: unless-stopped
     environment:
-      - PSQL_URL=postgres://postgres:P@ssw0rd@postgres:5432/postgres
-      - DRAGONFLY_URL= :6379
+      APP_NAME: 'counter-service in docker'
+      IN_DOCKER: "true"
+      PSQL_URL: postgres://postgres:P@ssw0rd@postgres:5432/postgres
+      DRAGONFLY_URL: dragonfly:6379
     ports:
       - "8081:8081"
     depends_on:
