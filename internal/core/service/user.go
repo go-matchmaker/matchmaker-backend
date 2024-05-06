@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/google/wire"
+	"time"
 )
 
 var (
@@ -19,13 +20,17 @@ var (
 )
 
 type UserService struct {
-	userRepo repository.UserPort
-	cache    cache.EngineMaker
-	token    token.TokenMaker
+	tokenDuration   time.Duration
+	refreshDuration time.Duration
+	userRepo        repository.UserPort
+	cache           cache.EngineMaker
+	token           token.TokenMaker
 }
 
-func NewUserService(userRepo repository.UserPort, cache cache.EngineMaker, token token.TokenMaker) service.UserPort {
+func NewUserService(tokenTTL time.Duration, refreshTTL time.Duration, userRepo repository.UserPort, cache cache.EngineMaker, token token.TokenMaker) service.UserPort {
 	return &UserService{
+		tokenTTL,
+		refreshTTL,
 		userRepo,
 		cache,
 		token,
@@ -33,7 +38,6 @@ func NewUserService(userRepo repository.UserPort, cache cache.EngineMaker, token
 }
 
 func (as *UserService) Register(ctx context.Context, userModel *entity.User) (*uuid.UUID, error) {
-
 	id, err := as.userRepo.Insert(ctx, userModel)
 	if err != nil {
 		return nil, err
@@ -58,10 +62,25 @@ func (as *UserService) Register(ctx context.Context, userModel *entity.User) (*u
 	return id, nil
 }
 
-//func (as *UserService) Login(ctx context.Context, email, password string) (string, error) {
-//	user, err := as.userRepo.GetByEmail(ctx, email)
-//	if err != nil {
-//		return "", err
-//	}
-//
-//}
+func (as *UserService) Login(ctx context.Context, email, password string) (string, error) {
+	user, err := as.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		return "", err
+	}
+
+	err = util.ComparePassword(password, user.PasswordHash)
+	if err != nil {
+		return "", err
+	}
+
+	accessToken, accessPayload, err := as.token.CreateToken(user.Email, user.Role, as.tokenDuration)
+	if err != nil {
+		return "", err
+	}
+
+	refreshToken, refreshPayload, err := as.token.CreateToken(user.Email, user.Role, as.refreshDuration)
+	if err != nil {
+		return "", err
+	}
+
+}

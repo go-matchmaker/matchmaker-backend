@@ -2,12 +2,12 @@ package broker
 
 import "context"
 
-type ProduceMaker interface {
+type Producer interface {
 	ProduceMessage(ctx context.Context, topic string, key []byte, value []byte) error
 	Close() error
 }
 
-type ConsumeMaker interface {
+type Consumer interface {
 	ConsumeMessages(ctx context.Context, topic string, handler func(key []byte, value []byte) error) error
 	Close() error
 }

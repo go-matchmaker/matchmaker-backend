@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"time"
 )
 
 const (
@@ -29,8 +30,9 @@ type (
 	}
 
 	Token struct {
-		SymmetricKey string `env-required:"true" yaml:"symmetric_key" env:"TOKEN_SYMMETRIC_KEY"`
-		TTL          string `env-required:"true" yaml:"ttl" env:"TOKEN_TTL"`
+		SymmetricKey string        `env-required:"true" yaml:"symmetric_key" env:"TOKEN_SYMMETRIC_KEY"`
+		TokenTTL     time.Duration `env-required:"true" yaml:"ttl" env:"TOKEN_TTL"`
+		RefreshTTL   time.Duration `env-required:"true" yaml:"refresh_ttl" env:"REFRESH_TTL"`
 	}
 
 	HTTP struct {

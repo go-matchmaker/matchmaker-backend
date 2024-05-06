@@ -10,7 +10,7 @@ import (
 func ArgToUserModel(userParam *user.Users) *entity.User {
 	return &entity.User{
 		ID:           userParam.ID,
-		UserRole:     entity.UserRole(userParam.UserRole),
+		Role:         userParam.Role,
 		Name:         userParam.Name,
 		Surname:      userParam.Surname,
 		Email:        userParam.Email,
@@ -24,7 +24,7 @@ func ArgToUserModel(userParam *user.Users) *entity.User {
 func UserModelToArg(userModel *entity.User) *user.Users {
 	return &user.Users{
 		ID:           userModel.ID,
-		UserRole:     user.UserRole(userModel.UserRole),
+		Role:         userModel.Role,
 		Name:         userModel.Name,
 		Surname:      userModel.Surname,
 		Email:        userModel.Email,

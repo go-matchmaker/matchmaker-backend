@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/converter"
-	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/dto"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/util"
 	"go.uber.org/zap"
@@ -29,7 +28,7 @@ func (s *server) RegisterUser(c fiber.Ctx) error {
 		})
 	}
 
-	userModel, err := converter.UserRegisterToModel(reqBody, entity.UserRoleCustomer, hashedPassword)
+	userModel, err := converter.UserRegisterToModel(reqBody, "user", hashedPassword)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,

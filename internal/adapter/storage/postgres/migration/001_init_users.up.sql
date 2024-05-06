@@ -1,14 +1,9 @@
 SET TIME ZONE 'Europe/Istanbul';
 
-CREATE TYPE user_role AS ENUM (
-    'admin',
-    'customer'
-);
-
 -- Create users table
 CREATE TABLE users (
     id uuid PRIMARY KEY,
-    user_role       user_role NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('admin', 'user')) DEFAULT 'user',
     name            TEXT NOT NULL,
     surname         TEXT NOT NULL,
     email           TEXT NOT NULL UNIQUE,

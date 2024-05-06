@@ -25,7 +25,7 @@ func createRandomUser() *entity.User {
 	}
 
 	return &entity.User{
-		UserRole:     "customer",
+		Role:         "customer",
 		Name:         util.RandomOwner(),
 		Surname:      util.RandomOwner(),
 		Email:        util.RandomEmail(),

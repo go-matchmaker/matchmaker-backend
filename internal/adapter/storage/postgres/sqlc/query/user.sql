@@ -1,7 +1,7 @@
 -- name: Insert :one
 INSERT INTO users (
     id,
-    user_role,
+    role,
     name,
     surname,
     email,

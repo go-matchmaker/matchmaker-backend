@@ -33,7 +33,7 @@ func (q *Queries) DeleteOne(ctx context.Context, db DBTX, id uuid.UUID) error {
 }
 
 const GetByEmail = `-- name: GetByEmail :one
-SELECT id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at FROM users
+SELECT id, role, name, surname, email, phone_number, password_hash, created_at, updated_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -42,7 +42,7 @@ func (q *Queries) GetByEmail(ctx context.Context, db DBTX, email string) (*Users
 	var i Users
 	err := row.Scan(
 		&i.ID,
-		&i.UserRole,
+		&i.Role,
 		&i.Name,
 		&i.Surname,
 		&i.Email,
@@ -55,7 +55,7 @@ func (q *Queries) GetByEmail(ctx context.Context, db DBTX, email string) (*Users
 }
 
 const GetByID = `-- name: GetByID :one
-SELECT id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at FROM users
+SELECT id, role, name, surname, email, phone_number, password_hash, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -64,7 +64,7 @@ func (q *Queries) GetByID(ctx context.Context, db DBTX, id uuid.UUID) (*Users, e
 	var i Users
 	err := row.Scan(
 		&i.ID,
-		&i.UserRole,
+		&i.Role,
 		&i.Name,
 		&i.Surname,
 		&i.Email,
@@ -79,7 +79,7 @@ func (q *Queries) GetByID(ctx context.Context, db DBTX, id uuid.UUID) (*Users, e
 const Insert = `-- name: Insert :one
 INSERT INTO users (
     id,
-    user_role,
+    role,
     name,
     surname,
     email,
@@ -88,12 +88,12 @@ INSERT INTO users (
     created_at,
     updated_at
  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9
-) RETURNING id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at
+) RETURNING id, role, name, surname, email, phone_number, password_hash, created_at, updated_at
 `
 
 type InsertParams struct {
 	ID           uuid.UUID `json:"id"`
-	UserRole     UserRole  `json:"user_role"`
+	Role         string    `json:"role"`
 	Name         string    `json:"name"`
 	Surname      string    `json:"surname"`
 	Email        string    `json:"email"`
@@ -106,7 +106,7 @@ type InsertParams struct {
 func (q *Queries) Insert(ctx context.Context, db DBTX, arg *InsertParams) (*Users, error) {
 	row := db.QueryRow(ctx, Insert,
 		arg.ID,
-		arg.UserRole,
+		arg.Role,
 		arg.Name,
 		arg.Surname,
 		arg.Email,
@@ -118,7 +118,7 @@ func (q *Queries) Insert(ctx context.Context, db DBTX, arg *InsertParams) (*User
 	var i Users
 	err := row.Scan(
 		&i.ID,
-		&i.UserRole,
+		&i.Role,
 		&i.Name,
 		&i.Surname,
 		&i.Email,
@@ -141,7 +141,7 @@ SET
     updated_at = COALESCE($6, updated_at)
 WHERE
 id = $7
-RETURNING id, user_role, name, surname, email, phone_number, password_hash, created_at, updated_at
+RETURNING id, role, name, surname, email, phone_number, password_hash, created_at, updated_at
 `
 
 type UpdateParams struct {
@@ -167,7 +167,7 @@ func (q *Queries) Update(ctx context.Context, db DBTX, arg *UpdateParams) (*User
 	var i Users
 	err := row.Scan(
 		&i.ID,
-		&i.UserRole,
+		&i.Role,
 		&i.Name,
 		&i.Surname,
 		&i.Email,

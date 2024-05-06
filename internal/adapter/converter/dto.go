@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-func UserRegisterToModel(userDto *dto.UserRegister, userRole entity.UserRole, pass string) (*entity.User, error) {
+func UserRegisterToModel(userDto *dto.UserRegister, role, pass string) (*entity.User, error) {
 
 	return &entity.User{
-		UserRole:     userRole,
+		Role:         role,
 		Name:         userDto.Name,
 		Surname:      userDto.Surname,
 		Email:        userDto.Email,
