@@ -3,7 +3,7 @@
 //   sqlc v1.26.0
 // source: user.sql
 
-package user
+package user_sql
 
 import (
 	"context"
@@ -135,18 +135,20 @@ UPDATE users
 SET
     name = COALESCE($1, name),
     surname = COALESCE($2, surname),
-    email = COALESCE($3, email),
-    phone_number = COALESCE($4, phone_number),
-    password_hash = COALESCE($5, password_hash),
-    updated_at = COALESCE($6, updated_at)
+	role = COALESCE($3, role),
+    email = COALESCE($4, email),
+    phone_number = COALESCE($5, phone_number),
+    password_hash = COALESCE($6, password_hash),
+    updated_at = COALESCE($7, updated_at)
 WHERE
-id = $7
+id = $8
 RETURNING id, role, name, surname, email, phone_number, password_hash, created_at, updated_at
 `
 
 type UpdateParams struct {
 	Name         pgtype.Text        `json:"name"`
 	Surname      pgtype.Text        `json:"surname"`
+	Role         pgtype.Text        `json:"role"`
 	Email        pgtype.Text        `json:"email"`
 	PhoneNumber  pgtype.Text        `json:"phone_number"`
 	PasswordHash pgtype.Text        `json:"password_hash"`
@@ -158,6 +160,7 @@ func (q *Queries) Update(ctx context.Context, db DBTX, arg *UpdateParams) (*User
 	row := db.QueryRow(ctx, Update,
 		arg.Name,
 		arg.Surname,
+		arg.Role,
 		arg.Email,
 		arg.PhoneNumber,
 		arg.PasswordHash,

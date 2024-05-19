@@ -25,6 +25,7 @@ UPDATE users
 SET
     name = COALESCE(sqlc.narg(name), name),
     surname = COALESCE(sqlc.narg(surname), surname),
+	role = COALESCE(sqlc.narg(role), role),
     email = COALESCE(sqlc.narg(email), email),
     phone_number = COALESCE(sqlc.narg(phone_number), phone_number),
     password_hash = COALESCE(sqlc.narg(password_hash), password_hash),

@@ -1,13 +1,12 @@
 package converter
 
 import (
+	"github.com/go-matchmaker/matchmaker-server/internal/adapter/dto"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
-	"github.com/go-matchmaker/matchmaker-server/internal/core/dto"
 	"time"
 )
 
-func UserRegisterToModel(userDto *dto.UserRegister, role, pass string) (*entity.User, error) {
-
+func UserRegisterRequestToModel(userDto *dto.UserRegisterRequest, role, pass string) (*entity.User, error) {
 	return &entity.User{
 		Role:         role,
 		Name:         userDto.Name,

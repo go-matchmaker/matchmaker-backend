@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type EngineMaker interface {
+type CacheEngine interface {
 	Start(ctx context.Context) error
 	Close(ctx context.Context) error
 	Keys(ctx context.Context, pattern string) ([]string, error)

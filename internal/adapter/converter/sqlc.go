@@ -1,13 +1,13 @@
 package converter
 
 import (
-	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres/sqlc/generated/user"
+	user_sql "github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres/sqlc/generated/user"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
 	"github.com/jackc/pgx/v5/pgtype"
 	"time"
 )
 
-func ArgToUserModel(userParam *user.Users) *entity.User {
+func ArgToUserModel(userParam *user_sql.Users) *entity.User {
 	return &entity.User{
 		ID:           userParam.ID,
 		Role:         userParam.Role,
@@ -21,8 +21,8 @@ func ArgToUserModel(userParam *user.Users) *entity.User {
 	}
 }
 
-func UserModelToArg(userModel *entity.User) *user.Users {
-	return &user.Users{
+func UserModelToArg(userModel *entity.User) *user_sql.Users {
+	return &user_sql.Users{
 		ID:           userModel.ID,
 		Role:         userModel.Role,
 		Name:         userModel.Name,
@@ -35,8 +35,8 @@ func UserModelToArg(userModel *entity.User) *user.Users {
 	}
 }
 
-func UserModelToUpdateArg(userModel *entity.User) *user.UpdateParams {
-	changedUserParams := &user.UpdateParams{
+func UserModelToUpdateArg(userModel *entity.User) *user_sql.UpdateParams {
+	changedUserParams := &user_sql.UpdateParams{
 		ID:        userModel.ID,
 		UpdatedAt: pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}

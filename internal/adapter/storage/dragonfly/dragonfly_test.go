@@ -56,7 +56,7 @@ func setup(url string) *config.Container {
 	}
 }
 
-func getConnection() cache.EngineMaker {
+func getConnection() cache.CacheEngine {
 	cfg := setup(url)
 	newCache := NewDragonflyCache(cfg)
 	err := newCache.Start(ctx)

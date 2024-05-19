@@ -6,32 +6,32 @@ import (
 	"github.com/go-matchmaker/matchmaker-server/internal/adapter/storage/postgres/sqlc/generated/user"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
-	"github.com/go-matchmaker/matchmaker-server/internal/core/port/repository"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/user"
 	"github.com/google/uuid"
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
-	_                 repository.UserPort = (*UserRepository)(nil)
-	UserRepositorySet                     = wire.NewSet(NewUserRepository)
+	_                 user.UserRepositoryPort = (*UserRepository)(nil)
+	UserRepositorySet                         = wire.NewSet(NewUserRepository)
 )
 
 type UserRepository struct {
-	querier user.Querier
+	querier user_sql.Querier
 	db      *pgxpool.Pool
 }
 
-func NewUserRepository(db db.EngineMaker) repository.UserPort {
+func NewUserRepository(db db.EngineMaker) user.UserRepositoryPort {
 	return &UserRepository{
-		querier: user.New(),
+		querier: user_sql.New(),
 		db:      db.GetDB(),
 	}
 }
 
 func (r *UserRepository) Insert(ctx context.Context, userModel *entity.User) (*uuid.UUID, error) {
 	userConv := converter.UserModelToArg(userModel)
-	userArg := user.InsertParams(*userConv)
+	userArg := user_sql.InsertParams(*userConv)
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, err

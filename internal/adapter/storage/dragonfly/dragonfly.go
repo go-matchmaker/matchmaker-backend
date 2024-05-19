@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	_ cache.EngineMaker = (*dragonfly)(nil)
+	_ cache.CacheEngine = (*dragonfly)(nil)
 )
 
 type dragonfly struct {
@@ -18,7 +18,7 @@ type dragonfly struct {
 	client *redis.Client
 }
 
-func NewDragonflyCache(cfg *config.Container) cache.EngineMaker {
+func NewDragonflyCache(cfg *config.Container) cache.CacheEngine {
 	d := &dragonfly{
 		cfg: cfg,
 	}

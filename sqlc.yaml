@@ -5,7 +5,7 @@ sql:
     schema: "internal/adapter/storage/postgres/migration/001_init_users.up.sql"
     gen:
       go:
-        package: "user"
+        package: "user_sql"
         out: "internal/adapter/storage/postgres/sqlc/generated/user"
         sql_package: "pgx/v5"
         emit_interface: true

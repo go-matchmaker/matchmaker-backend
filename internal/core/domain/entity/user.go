@@ -5,14 +5,19 @@ import (
 	"time"
 )
 
+const (
+	RoleAdmin = "admin"
+	RoleUser  = "user"
+)
+
 type User struct {
-	ID           uuid.UUID
-	Role         string
-	Name         string
-	Surname      string
-	Email        string
-	PhoneNumber  string
-	PasswordHash string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           uuid.UUID `json:"id"`
+	Role         string    `json:"role"`
+	Name         string    `json:"name"`
+	Surname      string    `json:"surname"`
+	Email        string    `json:"email"`
+	PhoneNumber  string    `json:"phone_number"`
+	PasswordHash string    `json:"password_hash"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }

@@ -47,9 +47,7 @@ func (ps *pdb) Start(ctx context.Context) error {
 }
 
 func (ps *pdb) getURL() string {
-	url := fmt.Sprintf("%s?sslmode=disable",
-		ps.cfg.PSQL.URL,
-	)
+	url := ps.cfg.PSQL.URL
 	return url
 }
 func (ps *pdb) ping(ctx context.Context) error {

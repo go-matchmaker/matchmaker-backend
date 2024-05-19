@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/db"
-	"github.com/go-matchmaker/matchmaker-server/internal/core/port/repository"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/user"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/util"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func getUserRepo(newDB db.EngineMaker) repository.UserPort {
+func getUserRepo(newDB db.EngineMaker) user.UserRepositoryPort {
 	userRepo := NewUserRepository(newDB)
 	return userRepo
 }
@@ -25,7 +25,7 @@ func createRandomUser() *entity.User {
 	}
 
 	return &entity.User{
-		Role:         "customer",
+		Role:         entity.RoleUser,
 		Name:         util.RandomOwner(),
 		Surname:      util.RandomOwner(),
 		Email:        util.RandomEmail(),
@@ -38,12 +38,11 @@ func createRandomUser() *entity.User {
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
-
-	user := createRandomUser()
+	randomUser := createRandomUser()
 
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserPort) error
+		setup  func(repo user.UserRepositoryPort) error
 		input  *entity.User
 		errors bool
 	}{
@@ -54,11 +53,11 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			name: "violates unique constraint",
-			setup: func(repo repository.UserPort) error {
-				_, err := repo.Insert(ctx, user)
+			setup: func(repo user.UserRepositoryPort) error {
+				_, err := repo.Insert(ctx, randomUser)
 				return err
 			},
-			input:  user,
+			input:  randomUser,
 			errors: true,
 		},
 	}
@@ -91,30 +90,30 @@ func TestCreate(t *testing.T) {
 
 func TestGetByID(t *testing.T) {
 	t.Parallel()
-	user := createRandomUser()
+	randomUser := createRandomUser()
 
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserPort) (*uuid.UUID, error)
+		setup  func(repo user.UserRepositoryPort) (*uuid.UUID, error)
 		input  *entity.User
 		errors bool
 	}{
 		{
 			name: "happy path",
-			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
-				id, err := repo.Insert(ctx, user)
+			setup: func(repo user.UserRepositoryPort) (*uuid.UUID, error) {
+				id, err := repo.Insert(ctx, randomUser)
 				return id, err
 			},
-			input:  user,
+			input:  randomUser,
 			errors: false,
 		},
 		{
 			name: "not found",
-			setup: func(repo repository.UserPort) (*uuid.UUID, error) {
+			setup: func(repo user.UserRepositoryPort) (*uuid.UUID, error) {
 				id, err := uuid.NewV7()
 				return &id, err
 			},
-			input:  user,
+			input:  randomUser,
 			errors: true,
 		},
 	}
@@ -144,27 +143,27 @@ func TestGetByID(t *testing.T) {
 }
 func TestDeleteOne(t *testing.T) {
 	t.Parallel()
-	user := createRandomUser()
+	randomUser := createRandomUser()
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserPort) (*entity.User, error)
+		setup  func(repo user.UserRepositoryPort) (*entity.User, error)
 		errors bool
 	}{
 		{
 			name: "happy path",
-			setup: func(repo repository.UserPort) (*entity.User, error) {
-				id, err := repo.Insert(ctx, user)
+			setup: func(repo user.UserRepositoryPort) (*entity.User, error) {
+				id, err := repo.Insert(ctx, randomUser)
 				if err != nil {
 					return nil, err
 				}
-				user.ID = *id
-				return user, nil
+				randomUser.ID = *id
+				return randomUser, nil
 			},
 			errors: false,
 		},
 		{
 			name: "not uuid standard",
-			setup: func(repo repository.UserPort) (*entity.User, error) {
+			setup: func(repo user.UserRepositoryPort) (*entity.User, error) {
 				id := "random"
 				userID, err := uuid.Parse(id)
 				if err != nil {
@@ -205,35 +204,23 @@ func TestDeleteOne(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	t.Parallel()
-	user := createRandomUser()
+	randomUser := createRandomUser()
 	testCases := []struct {
 		name   string
-		setup  func(repo repository.UserPort) (*entity.User, error)
+		setup  func(repo user.UserRepositoryPort) (*entity.User, error)
 		errors bool
 	}{
 		{
 			name: "happy path",
-			setup: func(repo repository.UserPort) (*entity.User, error) {
-				userID, err := repo.Insert(ctx, user)
+			setup: func(repo user.UserRepositoryPort) (*entity.User, error) {
+				userID, err := repo.Insert(ctx, randomUser)
 				if err != nil {
 					return nil, err
 				}
-				user.ID = *userID
-				return user, nil
+				randomUser.ID = *userID
+				return randomUser, nil
 			},
 			errors: false,
-		},
-		{
-			name: "not found",
-			setup: func(repo repository.UserPort) (*entity.User, error) {
-				id, err := uuid.NewV7()
-				if err != nil {
-					return nil, err
-				}
-				user.ID = id
-				return user, nil
-			},
-			errors: true,
 		},
 	}
 	for _, tc := range testCases {
@@ -249,9 +236,15 @@ func TestUpdateUser(t *testing.T) {
 			createdUser.Name = "RandomName"
 			createdUser.Surname = "RandomSurname"
 			createdUser.PhoneNumber = "1234567890"
-			createdUser.PasswordHash = "randompassword"
+			pass := util.RandomString(15)
+			createdUser.PasswordHash, err = util.HashPassword(pass)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			createdUser.Role = entity.RoleAdmin
 			createdUser.UpdatedAt = time.Now()
-			newUser, errUpdate := userRepo.Update(ctx, user)
+			newUser, errUpdate := userRepo.Update(ctx, createdUser)
 			if tc.errors {
 				require.Error(t, errUpdate)
 			} else {

@@ -2,85 +2,80 @@ package service
 
 import (
 	"context"
+	"errors"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/aggregate"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/domain/entity"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/auth"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/port/cache"
-	"github.com/go-matchmaker/matchmaker-server/internal/core/port/repository"
-	"github.com/go-matchmaker/matchmaker-server/internal/core/port/service"
-	"github.com/go-matchmaker/matchmaker-server/internal/core/port/token"
+	"github.com/go-matchmaker/matchmaker-server/internal/core/port/user"
 	"github.com/go-matchmaker/matchmaker-server/internal/core/util"
-	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/google/wire"
-	"time"
 )
 
 var (
-	_              service.UserPort = (*UserService)(nil)
-	UserServiceSet                  = wire.NewSet(NewUserService)
+	_              user.UserServicePort = (*UserService)(nil)
+	UserServiceSet                      = wire.NewSet(NewUserService)
 )
 
 type UserService struct {
-	tokenDuration   time.Duration
-	refreshDuration time.Duration
-	userRepo        repository.UserPort
-	cache           cache.EngineMaker
-	token           token.TokenMaker
+	userRepo user.UserRepositoryPort
+	cache    cache.CacheEngine
+	token    auth.TokenMaker
 }
 
-func NewUserService(tokenTTL time.Duration, refreshTTL time.Duration, userRepo repository.UserPort, cache cache.EngineMaker, token token.TokenMaker) service.UserPort {
+func NewUserService(userRepo user.UserRepositoryPort, cache cache.CacheEngine, token auth.TokenMaker) user.UserServicePort {
 	return &UserService{
-		tokenTTL,
-		refreshTTL,
 		userRepo,
 		cache,
 		token,
 	}
 }
 
-func (as *UserService) Register(ctx context.Context, userModel *entity.User) (*uuid.UUID, error) {
-	id, err := as.userRepo.Insert(ctx, userModel)
+func (us *UserService) Register(ctx context.Context, userModel *entity.User) (*uuid.UUID, error) {
+	id, err := us.userRepo.Insert(ctx, userModel)
 	if err != nil {
 		return nil, err
-	}
-
-	cachingKey := util.GenerateCacheKey("user", userModel.ID)
-	userSerialized, err := json.Marshal(userModel)
-	if err != nil {
-		return nil, err
-	}
-
-	err = as.cache.Set(ctx, cachingKey, userSerialized, 0)
-	if err != nil {
-		return nil, err
-	}
-	err = as.cache.DeleteByPrefix(ctx, "users:*") // delete all users cache because of new one
-	if err != nil {
-		return nil, err
-
 	}
 
 	return id, nil
 }
 
-func (as *UserService) Login(ctx context.Context, email, password string) (string, error) {
-	user, err := as.userRepo.GetByEmail(ctx, email)
+func (us *UserService) Login(ctx context.Context, email, password, ip string) (*aggregate.Session, error) {
+	userModel, err := us.userRepo.GetByEmail(ctx, email)
+	sessionModel := new(aggregate.Session)
 	if err != nil {
-		return "", err
+		return nil, errors.New("user not found")
 	}
 
-	err = util.ComparePassword(password, user.PasswordHash)
+	err = util.ComparePassword(password, userModel.PasswordHash)
 	if err != nil {
-		return "", err
+		return nil, errors.New("password not match")
 	}
 
-	accessToken, accessPayload, err := as.token.CreateToken(user.Email, user.Role, as.tokenDuration)
+	// We will take it from db later.
+	isBlocked := false
+	accessToken, publicKey, accessPayload, err := us.token.CreateToken(userModel.ID, userModel.Email, userModel.Role, isBlocked)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	refreshToken, refreshPublicKey, refreshPayload, err := us.token.CreateRefreshToken(accessPayload)
+	if err != nil {
+		return nil, err
 	}
 
-	refreshToken, refreshPayload, err := as.token.CreateToken(user.Email, user.Role, as.refreshDuration)
+	sessionModel = aggregate.NewSession(&userModel, refreshPayload, accessToken, publicKey, refreshToken, refreshPublicKey, ip)
+
+	return sessionModel, nil
+}
+
+func (us *UserService) UpdatePassword(ctx context.Context, id uuid.UUID, password string) (entity.User, error) {
+	userModel := new(entity.User)
+	userModel.PasswordHash = password
+	userUpdate, err := us.userRepo.Update(ctx, userModel)
 	if err != nil {
-		return "", err
+		return entity.User{}, err
 	}
 
+	return *userUpdate, nil
 }
